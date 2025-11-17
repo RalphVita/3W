@@ -53,7 +53,7 @@ class ImputeMissing(BaseStep):
             pd.DataFrame: Data in DataFrame format (original DataFrame or converted Series)
         """
         self.is_series = isinstance(data, pd.Series)
-        return data.to_frame(name="__temp__") if self.is_series else data
+        return data.to_frame(name="__temp__") if isinstance(data, pd.Series) else data
 
     def run(self, data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -187,7 +187,7 @@ class Normalize(BaseStep):
         if self.is_series:
             if not pd.api.types.is_numeric_dtype(data):
                 raise TypeError("Series must be numeric")
-            return data.values.reshape(-1, 1)
+            return np.asarray(data.values).reshape(-1, 1)
 
         non_numeric_cols = [
             col for col in data.columns if not pd.api.types.is_numeric_dtype(data[col])
@@ -195,7 +195,7 @@ class Normalize(BaseStep):
         if non_numeric_cols:
             raise TypeError("Non-numeric columns")
 
-        return data.values
+        return np.asarray(data.values)
 
     def run(self, X_array: np.ndarray) -> tuple:
         """

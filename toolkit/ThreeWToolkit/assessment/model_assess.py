@@ -472,7 +472,7 @@ class ModelAssessment(BaseStep):
             - Falls back to np.array() for other array-like objects
         """
         if isinstance(data, (pd.DataFrame, pd.Series)):
-            return data.values
+            return np.asarray(data.values)
         elif isinstance(data, np.ndarray):
             return data
         else:

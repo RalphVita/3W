@@ -191,7 +191,7 @@ def default_data_normalization(
     """
 
     # Filter loaded signals
-    selected_columns = data.columns
+    selected_columns = list(data.columns)
 
     # Remove target column
     if target_column is not None:
@@ -235,7 +235,7 @@ def default_data_processing(
     fill_target_value: int | None = None,
     *args,
     **kwargs,
-) -> pd.DataFrame:
+) -> dict[str, pd.DataFrame]:
     """Apply default cleaning and scaling on data and labels.
 
     Performs a complete data processing pipeline including cleanup, normalization, and missing value imputation.

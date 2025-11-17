@@ -68,7 +68,7 @@ class DataVisualization(ABC):
         else:
             fig = cast(Figure, ax.figure)
 
-        ax.plot(series.index, series.values, label="Value", **plot_kwargs)
+        ax.plot(series.index, np.asarray(series.values), label="Value", **plot_kwargs)
         ax.set_title(title)
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
@@ -152,7 +152,11 @@ class DataVisualization(ABC):
 
         for i, (series, label) in enumerate(zip(series_list, labels)):
             ax.plot(
-                series.index, series.values, label=label, color=colors[i], **plot_kwargs
+                series.index,
+                np.asarray(series.values),
+                label=label,
+                color=colors[i],
+                **plot_kwargs,
             )
 
         ax.legend(loc="best")
@@ -303,7 +307,7 @@ class DataVisualization(ABC):
             freq_unit = "Frequency (Hz)"
 
         # Compute FFT
-        yf = np.fft.fft(clean_series.values)
+        yf = np.fft.fft(np.asarray(clean_series.values))
         xf = np.fft.fftfreq(N, T)[: N // 2]
 
         # Compute amplitude spectrum
