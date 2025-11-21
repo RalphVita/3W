@@ -3,7 +3,7 @@ import json
 import pickle
 import logging
 from datetime import datetime
-from typing import Dict, Any, Union, Optional
+from typing import Dict, Any, Optional
 from pathlib import Path
 
 
@@ -38,7 +38,7 @@ class TrainerLogger:
     def log_optimization_progress(
         cls,
         progress_log: Dict[str, Any],
-        log_dir: Union[str, Path] = "logs",
+        log_dir: Path | str = "logs",
         file_format: str = "json",
     ) -> str:
         """

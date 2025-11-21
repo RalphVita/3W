@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 
-from typing import Union
 from sklearn.preprocessing import normalize as sk_normalize
 from scipy.signal import get_window
 
@@ -124,7 +123,7 @@ class ImputeMissing(BaseStep):
 
         return data_copy
 
-    def post_process(self, data: pd.DataFrame) -> Union[pd.DataFrame, pd.Series]:
+    def post_process(self, data: pd.DataFrame) -> pd.DataFrame | pd.Series:
         """
         Restore the original data format (Series or DataFrame).
 
@@ -135,7 +134,7 @@ class ImputeMissing(BaseStep):
             data (pd.DataFrame): Processed DataFrame
 
         Returns:
-            Union[pd.DataFrame, pd.Series]: Data in its original format
+            pd.DataFrame | pd.Series: Data in its original format
         """
         return data["__temp__"] if self.is_series else data
 

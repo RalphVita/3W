@@ -1,6 +1,6 @@
 from abc import ABC
 from pydantic import BaseModel, ConfigDict
-from typing import Optional, Union
+from typing import Optional
 import pandas as pd
 
 
@@ -13,14 +13,14 @@ class TimeSeriesHoldoutConfig(BaseModel):
         train_size (Optional[float]): Proportion or count of train samples. Must be <= 1 if float.
         random_state (Optional[int]): Seed for reproducibility.
         shuffle (bool): Whether to shuffle data before splitting. Defaults to False.
-        stratify (Optional[Union[pd.Series, pd.DataFrame]]): Labels for stratification. Must be set only if shuffle is True.
+        stratify (Optional[pd.Series | pd.DataFrame]): Labels for stratification. Must be set only if shuffle is True.
     """
 
     test_size: Optional[float] = None
     train_size: Optional[float] = None
     random_state: Optional[int] = None
     shuffle: bool = False
-    stratify: Optional[Union[pd.Series, pd.DataFrame]] = None
+    stratify: Optional[pd.Series | pd.DataFrame] = None
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 

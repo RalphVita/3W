@@ -3,7 +3,7 @@ import pandas as pd
 import jinja2
 
 from pathlib import Path
-from typing import Any, Dict, Union, Callable
+from typing import Any, Dict, Callable, Optional
 
 from pylatex import Document, Section, Command, Center, Itemize
 from pylatex.utils import NoEscape
@@ -40,7 +40,7 @@ class ReportGeneration:
         valid_plots (Dict[str, Callable]): A mapping of valid plot names to their corresponding functions.
 
     Methods:
-        generate_summary_report(format: str, template_name: str = "report_template.html") -> Union[Document, str]:
+        generate_summary_report(format: str, template_name: str = "report_template.html") -> Document | str:
             Generates a model evaluation report in either LaTeX (PDF) or HTML format.
         save_report(doc: Document | str, filename: str, format: str) -> None:
             Saves the report in both LaTeX (PDF) and HTML formats.
@@ -74,7 +74,7 @@ class ReportGeneration:
         y_test: pd.Series,
         predictions: pd.Series,
         calculated_metrics: dict,
-        plot_config: Union[dict, None],
+        plot_config: Optional[dict],
         title: str,
         author: str = "3W Toolkit Report",
         latex_dir: Path = LATEX_DIR,
@@ -95,7 +95,7 @@ class ReportGeneration:
             y_test (pd.Series): The testing target data.
             predictions (pd.Series): The model's predictions on the test set.
             calculated_metrics (dict): A dictionary of pre-calculated performance metrics.
-            plot_config (Union[dict, None]): A dictionary defining the plots to be
+            plot_config (Optional[dict]): A dictionary defining the plots to be
                 included in the report. If None, an empty dictionary is used.
             title (str): The title of the report.
             author (str, optional): The author of the report.
@@ -585,7 +585,7 @@ class ReportGeneration:
 
     def generate_summary_report(
         self, format, template_name: str = "report_template.html"
-    ) -> Union[Document, str]:
+    ) -> Document | str:
         """
         Generates a model evaluation report in either LaTeX (PDF) or HTML format.
 
@@ -593,7 +593,7 @@ class ReportGeneration:
             format (str): The format of the report to generate, either 'latex' or 'html'
             template_name (str): The name of the template file for HTML reports.
         Returns:
-            Union[Document, str]: A PyLaTeX Document for LaTeX reports or a string for HTML reports.
+            Document | str: A PyLaTeX Document for LaTeX reports or a string for HTML reports.
         """
         if self.save_report_after_generate:
             print(f"Reports will be saved to directory: '{self.reports_dir}'")

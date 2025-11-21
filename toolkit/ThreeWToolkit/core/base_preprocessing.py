@@ -1,6 +1,6 @@
 import pandas as pd
 
-from typing import Literal, Optional, Union
+from typing import Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field, ValidationInfo, field_validator
 
 
@@ -29,7 +29,7 @@ class NormalizeConfig(BaseModel):
 
 
 class WindowingConfig(BaseModel):
-    window: Union[str, tuple] = "hann"
+    window: str | tuple = "hann"
     window_size: int = Field(default=100, gt=1)
     overlap: float = Field(default=0.0, ge=0.0, lt=1.0)
     normalize: bool = False
