@@ -6,7 +6,6 @@ from tqdm import tqdm
 from pathlib import Path
 
 from ..utils.general_utils import GeneralUtils
-from typing import List
 from pydantic import BaseModel, field_validator
 
 FIGSHARE_BASE_URL = "https://api.figshare.com/v2"
@@ -94,7 +93,7 @@ class GetFigshareDataValidator(BaseModel):
 @GeneralUtils.validate_func_args_with_pydantic(GetFigshareDataValidator)
 def get_figshare_data(
     path: Path, version: str = "2.0.0", chunk_size: int = 1024 * 1024
-) -> List[Path]:
+) -> list[Path]:
     """Download requested 3W dataset version from Figshare.
 
     Downloads all files associated with the specified dataset version from Figshare
@@ -110,7 +109,7 @@ def get_figshare_data(
             Defaults to 1MB (1024 * 1024).
 
     Returns:
-        List[Path]: List of paths to the downloaded files.
+        list[Path]: List of paths to the downloaded files.
 
     Raises:
         RuntimeError: If the target file already exists or if MD5 checksum

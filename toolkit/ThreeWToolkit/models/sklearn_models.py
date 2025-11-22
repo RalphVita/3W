@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from typing import Dict, Any, Callable, Iterable
+from typing import Any, Callable, Iterable
 from pydantic import Field
 
 from sklearn.linear_model import LogisticRegression
@@ -33,7 +33,7 @@ SKLEARN_MODELS = {
 class SklearnModelsConfig(ModelsConfig):
     """Configuration that extends the base ModelsConfig for scikit-learn models."""
 
-    model_params: Dict[str, Any] = Field(
+    model_params: dict[str, Any] = Field(
         default_factory=dict, description="Hyperparameters for the scikit-learn model."
     )
 

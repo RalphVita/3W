@@ -3,7 +3,7 @@ import pandas as pd
 import jinja2
 
 from pathlib import Path
-from typing import Any, Dict, Callable
+from typing import Any, Callable
 
 from pylatex import Document, Section, Command, Center, Itemize
 from pylatex.utils import NoEscape
@@ -37,14 +37,14 @@ class ReportGeneration:
         latex_dir (Path): The directory to store intermediate LaTeX files.
         reports_dir (Path): The base directory where the final report folder will be created.
         save_report_after_generate (bool): If True, the report is saved immediately after generation.
-        valid_plots (Dict[str, Callable]): A mapping of valid plot names to their corresponding functions.
+        valid_plots (dict[str, Callable]): A mapping of valid plot names to their corresponding functions.
 
     Methods:
         generate_summary_report(format: str, template_name: str = "report_template.html") -> Document | str:
             Generates a model evaluation report in either LaTeX (PDF) or HTML format.
         save_report(doc: Document | str, filename: str, format: str) -> None:
             Saves the report in both LaTeX (PDF) and HTML formats.
-        export_results_to_csv(results: Dict[str, Any], filename: str) -> pd.DataFrame:
+        export_results_to_csv(results: dict[str, Any], filename: str) -> pd.DataFrame:
             Exports machine learning model results to a CSV file.
         get_visualization(format: str) -> dict:
             Generates and saves plots based on the provided plot configuration.
@@ -129,7 +129,7 @@ class ReportGeneration:
         self.reports_dir = reports_dir / report_folder
         self.save_report_after_generate = export_report_after_generate
 
-        self.valid_plots: Dict[str, Callable] = {
+        self.valid_plots: dict[str, Callable] = {
             "PlotSeries": DataVisualization.plot_series,
             "PlotMultipleSeries": DataVisualization.plot_multiple_series,
             "PlotCorrelationHeatmap": DataVisualization.correlation_heatmap,
@@ -507,7 +507,7 @@ class ReportGeneration:
         copy_html_support_files(HTML_TEMPLATES_DIR, HTML_ASSETS_DIR, report_path)
 
     def export_results_to_csv(
-        self, results: Dict[str, Any], filename: str
+        self, results: dict[str, Any], filename: str
     ) -> pd.DataFrame:
         """Exports machine learning model results to a CSV file.
 
@@ -521,13 +521,13 @@ class ReportGeneration:
         calculated performance metrics.
 
         Args:
-            results (Dict[str, Any]): A dictionary containing the model evaluation
+            results (dict[str, Any]): A dictionary containing the model evaluation
                 results. It must include the following keys:
                 - 'X_test' (pd.DataFrame or np.ndarray): The test features.
                 - 'true_values' (array-like): The actual target values.
                 - 'predictions' (array-like): The model's predicted values.
                 - 'model_name' (str): The name of the model.
-                - 'metrics' (Dict[str, float]): A dictionary where keys are metric
+                - 'metrics' (dict[str, float]): A dictionary where keys are metric
                   names (e.g., 'MAE', 'MSE') and values are the corresponding
                   scores.
             filename (str): The name for the output CSV file (e.g., 'results.csv').
