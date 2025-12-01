@@ -342,13 +342,17 @@ class Pipeline:
             pd.DataFrame: Processed batch ready for training
         """
         # Execute all preprocessing steps
-        batch_prep = batch
+        batch_prep: dict | pd.DataFrame = batch
 
         if self.step_preprocessing:
+            if not isinstance(batch_prep, dict):
+                raise TypeError("batch_prep must be a dict for preprocessing")
             batch_prep = self.run_step_preprocessing(batch_prep)
 
         # Execute feature extraction
         if self.step_feat_extraction:
+            if not isinstance(batch_prep, dict):
+                raise TypeError("batch_prep must be a dict for feature extraction")
             batch_prep = self.run_step_feature_extraction(batch_prep)
         else:
             if isinstance(batch_prep, dict):
