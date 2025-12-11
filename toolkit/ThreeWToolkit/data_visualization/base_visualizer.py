@@ -7,12 +7,14 @@ class BaseVisualizer(ABC):
     """
     Base class for all visualization objects.
 
-    Typical usage:
+    The contract is:
         vis = SomePlot(...)
-        fig, path = vis.plot()
+        fig, ax = vis.plot(ax=None)
+
+    If `ax` is None, the implementation must create a new Figure/Axes.
+    If `ax` is provided, it must draw on that Axes and return (ax.get_figure(), ax).
     """
 
     @abstractmethod
-    def plot(self) -> tuple[Figure, str]:
-        """Generate the plot and return (Figure, output_path)."""
+    def plot(self, ax: Axes | None = None) -> tuple[Figure, Axes]:
         raise NotImplementedError
