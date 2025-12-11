@@ -1,10 +1,10 @@
 import matplotlib.pyplot as plt
 import pandas as pd
+from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 from statsmodels.tsa.seasonal import seasonal_decompose
 
 from .base_visualizer import BaseVisualizer
-from .plot_utils import save_plot
 
 
 class SeasonalDecompositionPlot(BaseVisualizer):
@@ -22,7 +22,11 @@ class SeasonalDecompositionPlot(BaseVisualizer):
         self.model = model
         self.period = period
 
-    def plot(self) -> tuple[Figure, str]:
+    def plot(self, ax: Axes | None = None) -> tuple[Figure, Axes]:
+        # NOTE: `ax` is currently not used, since this plot always creates
+        # its own 4-row figure/axes grid.
+        # It is kept in the signature to comply with the unified interface.
+
         if self.series.empty:
             raise ValueError("Input series is empty")
 
@@ -44,21 +48,25 @@ class SeasonalDecompositionPlot(BaseVisualizer):
 
         fig, axes = plt.subplots(4, 1, figsize=(14, 10), sharex=True)
 
+        # Observed
         result.observed.plot(ax=axes[0], color="blue", linewidth=1.5)
         axes[0].set_ylabel("Observed")
         axes[0].set_title("Original Time Series")
         axes[0].grid(True, alpha=0.3)
 
+        # Trend
         result.trend.plot(ax=axes[1], color="red", linewidth=1.5)
         axes[1].set_ylabel("Trend")
         axes[1].set_title("Trend Component")
         axes[1].grid(True, alpha=0.3)
 
+        # Seasonal
         result.seasonal.plot(ax=axes[2], color="green", linewidth=1.5)
         axes[2].set_ylabel("Seasonal")
         axes[2].set_title("Seasonal Component")
         axes[2].grid(True, alpha=0.3)
 
+        # Residual
         result.resid.plot(ax=axes[3], color="orange", linewidth=1.5)
         axes[3].set_ylabel("Residual")
         axes[3].set_title("Residual Component")
@@ -74,5 +82,4 @@ class SeasonalDecompositionPlot(BaseVisualizer):
         plt.tight_layout()
         plt.subplots_adjust(top=0.94)
 
-        img_path = save_plot("Seasonal_Decomposition")
-        return fig, img_path
+        return fig, axes[0]

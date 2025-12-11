@@ -7,29 +7,25 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
 from .base_visualizer import BaseVisualizer
-from .plot_utils import save_plot
 
 
 class CorrelationHeatmap(BaseVisualizer):
     def __init__(
         self,
         df_of_series: pd.DataFrame,
-        ax: Axes | None = None,
         **kwargs,
     ) -> None:
         self.df_of_series = df_of_series
-        self.ax = ax
         self.kwargs = kwargs
 
-    def plot(self) -> tuple[Figure, str]:
+    def plot(self, ax: Axes | None = None) -> tuple[Figure, Axes]:
         title: str = self.kwargs.pop("title", "Correlation Heatmap")
         figsize: tuple = self.kwargs.pop("figsize", (10, 8))
 
-        if self.ax is None:
+        if ax is None:
             fig, ax = plt.subplots(figsize=figsize)
         else:
-            ax = self.ax
-            fig = cast(Figure, ax.figure)
+            fig = cast(Figure, ax.get_figure())
 
         if self.df_of_series.empty:
             ax.text(
@@ -44,7 +40,7 @@ class CorrelationHeatmap(BaseVisualizer):
             )
             ax.set_title(title)
             fig.tight_layout()
-            return fig, save_plot(title)
+            return fig, ax
 
         heatmap_defaults = {
             "annot": True,
@@ -62,5 +58,4 @@ class CorrelationHeatmap(BaseVisualizer):
         ax.set_title(title)
         fig.tight_layout()
 
-        img_path = save_plot(title)
-        return fig, img_path
+        return fig, ax

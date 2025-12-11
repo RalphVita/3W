@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
 

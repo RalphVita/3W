@@ -4,7 +4,7 @@ import numpy as np
 from matplotlib.axes import Axes
 import pandas as pd
 
-from .plot_utils import save_plot, create_subplot_grid
+from .plot_utils import create_subplot_grid
 from .plot_series import PlotSeries
 from .plot_multiple_series import PlotMultipleSeries
 from .correlation_heatmap import CorrelationHeatmap
@@ -34,17 +34,16 @@ class DataVisualization(ABC):
         overlay_events: bool = False,
         ax: Axes | None = None,
         **plot_kwargs,
-    ) -> tuple[Figure, str]:
+    ) -> tuple[Figure, Axes]:
         vis = PlotSeries(
             series=series,
             title=title,
             xlabel=xlabel,
             ylabel=ylabel,
             overlay_events=overlay_events,
-            ax=ax,
             **plot_kwargs,
         )
-        return vis.plot()
+        return vis.plot(ax=ax)
 
     @staticmethod
     def plot_multiple_series(
@@ -55,63 +54,58 @@ class DataVisualization(ABC):
         ylabel: str,
         ax: Axes | None = None,
         **plot_kwargs,
-    ) -> tuple[Figure, str]:
+    ) -> tuple[Figure, Axes]:
         vis = PlotMultipleSeries(
             series_list=series_list,
             labels=labels,
             title=title,
             xlabel=xlabel,
             ylabel=ylabel,
-            ax=ax,
             **plot_kwargs,
         )
-        return vis.plot()
+        return vis.plot(ax=ax)
 
     @staticmethod
     def correlation_heatmap(
         df_of_series: pd.DataFrame,
         ax: Axes | None = None,
         **kwargs,
-    ) -> tuple[Figure, str]:
-        vis = CorrelationHeatmap(df_of_series=df_of_series, ax=ax, **kwargs)
-        return vis.plot()
+    ) -> tuple[Figure, Axes]:
+        vis = CorrelationHeatmap(df_of_series=df_of_series, **kwargs)
+        return vis.plot(ax=ax)
 
     @staticmethod
     def plot_fft(
         series: pd.Series,
         title: str = "FFT Analysis",
         sample_rate: float | None = None,
-    ) -> tuple[Figure, str]:
+        ax: Axes | None = None,
+    ) -> tuple[Figure, Axes]:
         vis = PlotFFT(series=series, title=title, sample_rate=sample_rate)
-        return vis.plot()
+        return vis.plot(ax=ax)
 
     @staticmethod
     def seasonal_decompose(
         series: pd.Series,
         model: str = "additive",
         period: int | None = None,
-    ) -> tuple[Figure, str]:
+        ax: Axes | None = None,
+    ) -> tuple[Figure, Axes]:
         vis = SeasonalDecompositionPlot(series=series, model=model, period=period)
-        return vis.plot()
+        return vis.plot(ax=ax)
 
     @staticmethod
     def plot_wavelet_spectrogram(
         series: pd.Series,
         title: str = "Wavelet Spectrogram",
-    ) -> tuple[Figure, str]:
+        ax: Axes | None = None,
+    ) -> tuple[Figure, Axes]:
         vis = WaveletSpectrogramPlot(series=series, title=title)
-        return vis.plot()
+        return vis.plot(ax=ax)
 
     # ------------------------------------------------------------------
     # Utilities (backwards compatible)
     # ------------------------------------------------------------------
-
-    @staticmethod
-    def _save_plot(title: str) -> str:
-        """
-        Backwards-compatible wrapper around plot_utils.save_plot().
-        """
-        return save_plot(title)
 
     @staticmethod
     def create_subplot_grid(

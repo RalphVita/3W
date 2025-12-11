@@ -1,10 +1,11 @@
+from typing import cast
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
 from .base_visualizer import BaseVisualizer
-from .plot_utils import save_plot
 
 
 class WaveletSpectrogramPlot(BaseVisualizer):
@@ -20,11 +21,14 @@ class WaveletSpectrogramPlot(BaseVisualizer):
         self.series = series
         self.title = title
 
-    def plot(self) -> tuple[Figure, str]:
+    def plot(self, ax: Axes | None = None) -> tuple[Figure, Axes]:
         if self.series.empty:
             raise ValueError("Input series is empty")
 
-        fig, ax = plt.subplots(figsize=(12, 8))
+        if ax is None:
+            fig, ax = plt.subplots(figsize=(12, 8))
+        else:
+            fig = cast(Figure, ax.get_figure())
 
         time_points = len(self.series)
         frequency_scales = 50
@@ -59,7 +63,6 @@ class WaveletSpectrogramPlot(BaseVisualizer):
             verticalalignment="top",
         )
 
-        plt.tight_layout()
+        fig.tight_layout()
 
-        img_path = save_plot(self.title)
-        return fig, img_path
+        return fig, ax

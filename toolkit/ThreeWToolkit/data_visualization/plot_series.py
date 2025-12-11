@@ -7,7 +7,6 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
 from .base_visualizer import BaseVisualizer
-from .plot_utils import save_plot
 
 
 class PlotSeries(BaseVisualizer):
@@ -18,7 +17,6 @@ class PlotSeries(BaseVisualizer):
         xlabel: str,
         ylabel: str,
         overlay_events: bool = False,
-        ax: Axes | None = None,
         **plot_kwargs,
     ) -> None:
         self.series = series
@@ -26,15 +24,13 @@ class PlotSeries(BaseVisualizer):
         self.xlabel = xlabel
         self.ylabel = ylabel
         self.overlay_events = overlay_events
-        self.ax = ax
         self.plot_kwargs = plot_kwargs
 
-    def plot(self) -> tuple[Figure, str]:
-        if self.ax is None:
+    def plot(self, ax: Axes | None = None) -> tuple[Figure, Axes]:
+        if ax is None:
             fig, ax = plt.subplots(figsize=(12, 6))
         else:
-            ax = self.ax
-            fig = cast(Figure, ax.figure)
+            fig = cast(Figure, ax.get_figure())
 
         ax.plot(
             self.series.index,
@@ -63,5 +59,4 @@ class PlotSeries(BaseVisualizer):
                 )
                 ax.legend()
 
-        img_path = save_plot(self.title)
-        return fig, img_path
+        return fig, ax
