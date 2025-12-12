@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
+import pytest
 
 from ThreeWToolkit.data_visualization.plots import DataVisualization
 
@@ -69,3 +70,18 @@ class TestPlotCorrelationHeatmap:
 
         assert isinstance(fig, Figure)
         assert isinstance(fig.gca(), Axes)
+
+    def test_correlation_heatmap_only_nan_raises_value_error(self):
+        """
+        Test that correlation_heatmap raises ValueError when all values are NaN.
+        """
+        nan_df = pd.DataFrame(
+            {
+                "A": [np.nan, np.nan, np.nan],
+                "B": [np.nan, np.nan, np.nan],
+                "C": [np.nan, np.nan, np.nan],
+            }
+        )
+
+        with pytest.raises(ValueError, match="Series contains only NaN values"):
+            DataVisualization.correlation_heatmap(df_of_series=nan_df)

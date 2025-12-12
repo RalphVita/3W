@@ -10,6 +10,12 @@ from .base_visualizer import BaseVisualizer
 
 
 class CorrelationHeatmap(BaseVisualizer):
+    """
+    Visualizer for plotting a correlation heatmap from a DataFrame.
+
+    Stores the input DataFrame and optional plotting parameters,
+    and provides a `plot()` method that renders the heatmap.
+    """
     def __init__(
         self,
         df_of_series: pd.DataFrame,
@@ -19,6 +25,26 @@ class CorrelationHeatmap(BaseVisualizer):
         self.kwargs = kwargs
 
     def plot(self, ax: Axes | None = None) -> tuple[Figure, Axes]:
+        """
+        Plot the correlation heatmap.
+
+        If no Axes is provided, a new figure is created.  
+        If the DataFrame is empty, a placeholder message is shown.  
+        If all values are NaN, a ValueError is raised.
+
+        Parameters
+        ----------
+        ax : Axes or None
+            Axes to draw on. If None, a new figure/Axes is created.
+
+        Returns
+        -------
+        fig : Figure
+            The figure containing the plot.
+        ax : Axes
+            The axes where the heatmap is rendered.
+        """
+
         title: str = self.kwargs.pop("title", "Correlation Heatmap")
         figsize: tuple = self.kwargs.pop("figsize", (10, 8))
 
@@ -41,6 +67,9 @@ class CorrelationHeatmap(BaseVisualizer):
             ax.set_title(title)
             fig.tight_layout()
             return fig, ax
+        
+        if self.df_of_series.isna().all().all():
+            raise ValueError("Series contains only NaN values")
 
         heatmap_defaults = {
             "annot": True,

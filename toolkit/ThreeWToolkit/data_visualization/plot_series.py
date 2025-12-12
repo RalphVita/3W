@@ -10,6 +10,13 @@ from .base_visualizer import BaseVisualizer
 
 
 class PlotSeries(BaseVisualizer):
+    """
+    Visualizer for plotting a single time series.
+
+    Supports optional event overlay (vertical lines at NaN positions)
+    and accepts additional matplotlib plotting parameters.
+    """
+
     def __init__(
         self,
         series: pd.Series,
@@ -27,6 +34,31 @@ class PlotSeries(BaseVisualizer):
         self.plot_kwargs = plot_kwargs
 
     def plot(self, ax: Axes | None = None) -> tuple[Figure, Axes]:
+        """
+        Plot a single time series.
+
+        Creates a new figure if no Axes is provided.
+        Raises an error if the series is empty or contains only NaN values.
+        If `overlay_events=True`, vertical lines are drawn at NaN timestamps.
+
+        Parameters
+        ----------
+        ax : Axes or None
+            Axes to draw the plot on. If None, a new figure/Axes is created.
+
+        Returns
+        -------
+        fig : Figure
+            The figure containing the time-series plot.
+        ax : Axes
+            The axes with the rendered plot.
+        """
+        if self.series.empty:
+            raise ValueError("Series is empty. Cannot generate plot.")
+
+        if self.series.dropna().empty:
+            raise ValueError("Series contains only NaN values. Nothing to plot.")
+
         if ax is None:
             fig, ax = plt.subplots(figsize=(12, 6))
         else:
@@ -34,7 +66,7 @@ class PlotSeries(BaseVisualizer):
 
         ax.plot(
             self.series.index,
-            np.asarray(self.series.values),
+            self.series.values,
             label="Value",
             **self.plot_kwargs,
         )

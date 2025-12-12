@@ -10,8 +10,11 @@ from .base_visualizer import BaseVisualizer
 
 class WaveletSpectrogramPlot(BaseVisualizer):
     """
-    Mock wavelet spectrogram visualization.
+    Visualizer for plotting a mock wavelet spectrogram from a time series.
+
+    Generates a synthetic spectrogram for demonstration purposes only.
     """
+
 
     def __init__(
         self,
@@ -22,6 +25,26 @@ class WaveletSpectrogramPlot(BaseVisualizer):
         self.title = title
 
     def plot(self, ax: Axes | None = None) -> tuple[Figure, Axes]:
+        """
+        Plot a mock wavelet spectrogram for the input series.
+
+        Creates a random spectrogram matrix with exponential decay in frequency.
+        A new figure is created if no Axes is provided.
+        Raises an error if the input series is empty.
+
+        Parameters
+        ----------
+        ax : Axes or None
+            Axes to draw the spectrogram on. If None, a new figure/Axes is created.
+
+        Returns
+        -------
+        fig : Figure
+            The figure containing the spectrogram.
+        ax : Axes
+            The axes with the rendered spectrogram.
+        """
+
         if self.series.empty:
             raise ValueError("Input series is empty")
 

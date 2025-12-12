@@ -10,6 +10,10 @@ from .base_visualizer import BaseVisualizer
 
 
 class PlotFFT(BaseVisualizer):
+    """
+    Visualizer for computing and plotting the Fast Fourier Transform (FFT)
+    of a time series. Supports optional sample rate for frequency scaling.
+    """
     def __init__(
         self,
         series: pd.Series,
@@ -21,6 +25,24 @@ class PlotFFT(BaseVisualizer):
         self.sample_rate = sample_rate
 
     def plot(self, ax: Axes | None = None) -> tuple[Figure, Axes]:
+        """
+        Plot the FFT amplitude spectrum of the input series.
+
+        If no Axes is provided, a new figure is created.
+        Raises an error if the series is empty or contains only NaN values.
+
+        Parameters
+        ----------
+        ax : Axes or None
+            Axes to draw the plot on. If None, a new figure/Axes is created.
+
+        Returns
+        -------
+        fig : Figure
+            The figure containing the FFT plot.
+        ax : Axes
+            The axes with the FFT amplitude spectrum.
+        """
         if self.series.empty:
             raise ValueError("Input series is empty")
 
@@ -28,18 +50,18 @@ class PlotFFT(BaseVisualizer):
         if clean_series.empty:
             raise ValueError("Series contains only NaN values")
 
-        N = len(clean_series)
+        num_samples = len(clean_series)
 
         if self.sample_rate is None:
-            T = 1.0
+            sample_period = 1.0
             freq_unit = "Cycles per Sample"
         else:
-            T = 1.0 / self.sample_rate
+            sample_period = 1.0 / self.sample_rate
             freq_unit = "Frequency (Hz)"
 
-        yf = np.fft.fft(np.asarray(clean_series.values))
-        xf = np.fft.fftfreq(N, T)[: N // 2]
-        amplitude = 2.0 / N * np.abs(yf[0 : N // 2])
+        yf = np.fft.fft(clean_series.values)
+        xf = np.fft.fftfreq(num_samples, sample_period)[: num_samples // 2]
+        amplitude = 2.0 / num_samples * np.abs(yf[0 : num_samples // 2])
 
         if ax is None:
             fig, ax = plt.subplots(figsize=(12, 8))

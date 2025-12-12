@@ -9,8 +9,10 @@ from .base_visualizer import BaseVisualizer
 
 class SeasonalDecompositionPlot(BaseVisualizer):
     """
-    Performs seasonal decomposition and plots the components.
+    Visualizer for performing seasonal decomposition on a time series
+    and plotting its components (observed, trend, seasonal, residual).
     """
+
 
     def __init__(
         self,
@@ -23,9 +25,24 @@ class SeasonalDecompositionPlot(BaseVisualizer):
         self.period = period
 
     def plot(self, ax: Axes | None = None) -> tuple[Figure, Axes]:
-        # NOTE: `ax` is currently not used, since this plot always creates
-        # its own 4-row figure/axes grid.
-        # It is kept in the signature to comply with the unified interface.
+        """
+        Perform seasonal decomposition and plot its four components.
+
+        A new 4-row figure is always created (Observed, Trend, Seasonal, Residual).
+        Raises errors for empty series, invalid model type, or insufficient data.
+
+        Parameters
+        ----------
+        ax : Axes or None
+            Unused. Present only for API consistency.
+
+        Returns
+        -------
+        fig : Figure
+            The figure containing the 4 decomposition subplots.
+        ax : Axes
+            The first Axes object (Observed component).
+        """
 
         if self.series.empty:
             raise ValueError("Input series is empty")
