@@ -25,7 +25,6 @@ class DataVisualization(ABC):
         fig, path = DataVisualization.plot_series(...)
     """
 
-
     @staticmethod
     def plot_series(
         series: pd.Series,
