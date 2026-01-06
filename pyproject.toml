@@ -18,14 +18,6 @@ keywords = [
     "data-science",
     "artificial-intelligence",
 ]
-
-[project.urls]
-Homepage = "https://github.com/petrobras/3W"
-Repository = "https://github.com/petrobras/3W"
-Documentation = "https://github.com/petrobras/3W"
-"Bug Tracker" = "https://github.com/petrobras/3W/issues"
-"Source Code" = "https://github.com/petrobras/3W"
-Changelog = "https://github.com/petrobras/3W/releases"
 dependencies = [
     "numpy>=1.26.4",
     "scipy>=1.15.2",
@@ -53,6 +45,14 @@ dependencies = [
     "statsmodels>=0.14.5",
     "requests<=2.35.5",
 ]
+
+[project.urls]
+Homepage = "https://github.com/petrobras/3W"
+Repository = "https://github.com/petrobras/3W"
+Documentation = "https://github.com/petrobras/3W"
+"Bug Tracker" = "https://github.com/petrobras/3W/issues"
+"Source Code" = "https://github.com/petrobras/3W"
+Changelog = "https://github.com/petrobras/3W/releases"
 
 [project.optional-dependencies]
 dev = [
