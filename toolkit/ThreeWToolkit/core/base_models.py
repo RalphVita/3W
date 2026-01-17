@@ -17,7 +17,7 @@ class ModelsConfig(BaseModel):
         if v is None:
             raise ValueError("model_type is required.")
         if v not in valid_types and v not in valid_strs:
-            raise NotImplementedError("model_type not implemented yet.")
+            raise NotImplementedError(f"`model_type` {v} not implemented yet.")
         return v
 
 
