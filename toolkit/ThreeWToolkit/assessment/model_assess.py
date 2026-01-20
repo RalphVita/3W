@@ -229,14 +229,16 @@ class ModelAssessment(
         y_test = data["y_test"]
         kwargs_value = data.get("kwargs", {})
 
-        # Type guards for evaluate method
-        # Check for proper types first, then fall back to duck typing for tests/mocks
-        if not isinstance(model, (MLP, SklearnModels)) and not hasattr(
-            model, "predict"
-        ):
+        # Type guards for evaluate method - required by mypy
+        if isinstance(model, (MLP, SklearnModels)):
+            pass
+        elif hasattr(model, "predict"):
+            pass
+        else:
             raise TypeError(
                 f"Model must be MLP, SklearnModels, or have a 'predict' method, got {type(model)}"
             )
+
         if not isinstance(x_test, (pd.DataFrame, np.ndarray)):
             raise TypeError(
                 f"x_test must be pd.DataFrame or np.ndarray, got {type(x_test)}"
@@ -253,8 +255,18 @@ class ModelAssessment(
             kwargs = kwargs_value
 
         self._setup_metrics()
+
         # Perform evaluation
-        assessment_results = self.evaluate(model, x_test, y_test, **kwargs)
+        # If model is MLP or SklearnModels, mypy understands the type here
+        # Otherwise, _get_predictions handles duck typing
+        if isinstance(model, (MLP, SklearnModels)):
+            assessment_results = self.evaluate(model, x_test, y_test, **kwargs)
+        else:
+            # We need tto satisfy the type checker
+            if not hasattr(model, "predict"):
+                raise ValueError("Model must have predict method")
+
+            assessment_results = self.evaluate(model, x_test, y_test, **kwargs)  # type: ignore[arg-type]
 
         # Add assessment results to data
         data["assessment_results"] = assessment_results
