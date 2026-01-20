@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import pandas as pd
 
-from typing import Any, Callable
+from typing import Callable, Union
 from torch.utils.data import DataLoader, TensorDataset
 
 from ..core.base_step import BaseStep
@@ -23,8 +23,49 @@ from ..models.sklearn_models import SklearnModels
 
 from pylatex import Document
 
+# Type aliases for complex union types
+_ModelAssessmentInput = Union[dict, tuple, list]
+_ModelAssessmentPreProcessed = dict[
+    str, Union[MLP, SklearnModels, pd.DataFrame, pd.Series, np.ndarray, dict]
+]
+_ModelAssessmentRunOutput = dict[
+    str,
+    Union[
+        MLP,
+        SklearnModels,
+        pd.DataFrame,
+        pd.Series,
+        np.ndarray,
+        dict,
+        str,
+        pd.Timestamp,
+    ],
+]
+_ModelAssessmentOutput = dict[
+    str,
+    Union[
+        MLP,
+        SklearnModels,
+        pd.DataFrame,
+        pd.Series,
+        np.ndarray,
+        dict,
+        str,
+        pd.Timestamp,
+        bool,
+        TaskTypeEnum,
+    ],
+]
 
-class ModelAssessment(BaseStep):
+
+class ModelAssessment(
+    BaseStep[
+        _ModelAssessmentInput,
+        _ModelAssessmentPreProcessed,
+        _ModelAssessmentRunOutput,
+        _ModelAssessmentOutput,
+    ]
+):
     """Comprehensive model evaluation class for both PyTorch and scikit-learn models.
 
     This class provides a unified interface for evaluating machine learning models
@@ -41,7 +82,7 @@ class ModelAssessment(BaseStep):
 
     Attributes:
         config (ModelAssessmentConfig): The assessment configuration.
-        results (dict[str, Any]): Dictionary storing the latest evaluation results.
+        results (dict[str, str | np.ndarray | dict[str, float] | dict | pd.Timestamp]): Dictionary storing the latest evaluation results.
         report_doc (Document | None): Generated LaTeX report document.
         metric_functions (dict): Mapping of metric names to their calculation functions.
 
@@ -84,7 +125,9 @@ class ModelAssessment(BaseStep):
                 all assessment parameters and settings.
         """
         self.config = config
-        self.results: dict[str, Any] = {}
+        self.results: dict[
+            str, str | np.ndarray | dict[str, float] | dict | pd.Timestamp
+        ] = {}
         self.report_doc: Document | None = None
 
         # Create output directory for results and reports
@@ -104,7 +147,9 @@ class ModelAssessment(BaseStep):
 
         self.metric_functions: dict[str, Callable] | None = None
 
-    def pre_process(self, data: Any) -> dict[str, Any]:
+    def pre_process(
+        self, data: dict | tuple | list
+    ) -> dict[str, MLP | SklearnModels | pd.DataFrame | pd.Series | np.ndarray | dict]:
         """Standardizes the input of the step.
 
         Validates and standardizes the input data format for model assessment.
@@ -114,7 +159,7 @@ class ModelAssessment(BaseStep):
                   Can be a dict or any structure containing the required assessment data.
 
         Returns:
-            dict[str, Any]: Standardized data dictionary with required keys.
+            dict[str, MLP | SklearnModels | pd.DataFrame | pd.Series | np.ndarray | dict]: Standardized data dictionary with required keys.
 
         Raises:
             ValueError: If required assessment data is missing.
@@ -152,22 +197,60 @@ class ModelAssessment(BaseStep):
 
         return processed_data
 
-    def run(self, data: dict[str, Any]) -> dict[str, Any]:
+    def run(
+        self,
+        data: dict[
+            str, MLP | SklearnModels | pd.DataFrame | pd.Series | np.ndarray | dict
+        ],
+    ) -> dict[
+        str,
+        MLP
+        | SklearnModels
+        | pd.DataFrame
+        | pd.Series
+        | np.ndarray
+        | dict
+        | str
+        | pd.Timestamp,
+    ]:
         """Main logic of the step.
 
         Performs the actual model assessment using the provided data.
 
         Args:
-            data (dict[str, Any]): Preprocessed data containing model and test data.
+            data (dict[str, MLP | SklearnModels | pd.DataFrame | pd.Series | np.ndarray | dict]): Preprocessed data containing model and test data.
 
         Returns:
-            dict[str, Any]: Data with assessment results added.
+            dict[str, MLP | SklearnModels | pd.DataFrame | pd.Series | np.ndarray | dict | str | pd.Timestamp]: Data with assessment results added.
         """
         # Extract assessment parameters
         model = data["model"]
         x_test = data["x_test"]
         y_test = data["y_test"]
-        kwargs = data.get("kwargs", {})
+        kwargs_value = data.get("kwargs", {})
+
+        # Type guards for evaluate method
+        # Check for proper types first, then fall back to duck typing for tests/mocks
+        if not isinstance(model, (MLP, SklearnModels)) and not hasattr(
+            model, "predict"
+        ):
+            raise TypeError(
+                f"Model must be MLP, SklearnModels, or have a 'predict' method, got {type(model)}"
+            )
+        if not isinstance(x_test, (pd.DataFrame, np.ndarray)):
+            raise TypeError(
+                f"x_test must be pd.DataFrame or np.ndarray, got {type(x_test)}"
+            )
+        if not isinstance(y_test, (pd.DataFrame, pd.Series, np.ndarray)):
+            raise TypeError(
+                f"y_test must be pd.DataFrame, pd.Series, or np.ndarray, got {type(y_test)}"
+            )
+
+        # Ensure kwargs is a dict for unpacking
+        if not isinstance(kwargs_value, dict):
+            kwargs = {}
+        else:
+            kwargs = kwargs_value
 
         self._setup_metrics()
         # Perform evaluation
@@ -181,16 +264,41 @@ class ModelAssessment(BaseStep):
 
         return data
 
-    def post_process(self, data: dict[str, Any]) -> dict[str, Any]:
+    def post_process(
+        self,
+        data: dict[
+            str,
+            MLP
+            | SklearnModels
+            | pd.DataFrame
+            | pd.Series
+            | np.ndarray
+            | dict
+            | str
+            | pd.Timestamp,
+        ],
+    ) -> dict[
+        str,
+        MLP
+        | SklearnModels
+        | pd.DataFrame
+        | pd.Series
+        | np.ndarray
+        | dict
+        | str
+        | pd.Timestamp
+        | bool
+        | TaskTypeEnum,
+    ]:
         """Standardizes the output of the step.
 
         Performs any final processing and ensures output format consistency.
 
         Args:
-            data (dict[str, Any]): Data with assessment results.
+            data (dict[str, MLP | SklearnModels | pd.DataFrame | pd.Series | np.ndarray | dict | str | pd.Timestamp]): Data with assessment results.
 
         Returns:
-            dict[str, Any]: Final processed data ready for next pipeline step.
+            dict[str, MLP | SklearnModels | pd.DataFrame | pd.Series | np.ndarray | dict | str | pd.Timestamp | bool | TaskTypeEnum]: Final processed data ready for next pipeline step.
         """
         # Ensure all expected outputs are present
         expected_outputs = ["assessment_results", "metrics", "predictions", "assessor"]
@@ -251,11 +359,11 @@ class ModelAssessment(BaseStep):
 
     def evaluate(
         self,
-        model: MLP | SklearnModels | Any,
+        model: MLP | SklearnModels,
         X_test: pd.DataFrame | np.ndarray,
         y_test: pd.DataFrame | pd.Series | np.ndarray,
         **kwargs,
-    ) -> dict[str, Any]:
+    ) -> dict[str, str | np.ndarray | dict[str, float] | dict | pd.Timestamp]:
         """Evaluate model performance on test data with comprehensive metrics.
 
         This method performs a complete model evaluation including prediction
@@ -263,9 +371,8 @@ class ModelAssessment(BaseStep):
         generation and export.
 
         Args:
-            model (MLP | SklearnModels | Any): Trained model instance.
-                Can be a PyTorch MLP, SklearnModels wrapper, or any sklearn-
-                compatible model with a predict method.
+            model (MLP | SklearnModels): Trained model instance.
+                Can be a PyTorch MLP or SklearnModels wrapper.
             X_test (pd.DataFrame | np.ndarray): Test input features.
                 Will be automatically converted to numpy array for processing.
             y_test (pd.DataFrame | pd.Series | np.ndarray): Test target
@@ -274,7 +381,7 @@ class ModelAssessment(BaseStep):
                 predict method.
 
         Returns:
-            dict[str, Any]: Comprehensive evaluation results containing:
+            dict[str, str | np.ndarray | dict[str, float] | dict | pd.Timestamp]: Comprehensive evaluation results containing:
                 - model_name (str): Name of the evaluated model
                 - task_type (TaskTypeEnum): Classification or regression
                 - predictions (np.ndarray): Model predictions on test data
@@ -338,7 +445,7 @@ class ModelAssessment(BaseStep):
         return self.results
 
     def _get_predictions(
-        self, model: MLP | SklearnModels | Any, X_test: np.ndarray, **kwargs
+        self, model: MLP | SklearnModels, X_test: np.ndarray, **kwargs
     ) -> np.ndarray:
         """Generate predictions from model with proper handling for different types.
 
@@ -346,7 +453,7 @@ class ModelAssessment(BaseStep):
         the model type, handling the different interfaces transparently.
 
         Args:
-            model (MLP | SklearnModels | Any): Trained model instance.
+            model (MLP | SklearnModels): Trained model instance.
             X_test (np.ndarray): Test features as numpy array.
             **kwargs: Additional arguments passed to the prediction method.
 
@@ -440,11 +547,11 @@ class ModelAssessment(BaseStep):
 
         return metrics_results
 
-    def _get_model_name(self, model: Any) -> str:
+    def _get_model_name(self, model: MLP | SklearnModels) -> str:
         """Extract a human-readable name from the model object.
 
         Args:
-            model (Any): Model instance to extract name from.
+            model (MLP | SklearnModels): Model instance to extract name from.
 
         Returns:
             str: Model class name or "Unknown_Model" if name cannot be determined.
@@ -581,6 +688,16 @@ class ModelAssessment(BaseStep):
         # }
         plot_config = None  # Disable plots for now
 
+        # Ensure calculated_metrics is the correct type
+        metrics = self.results["metrics"]
+        if not isinstance(metrics, dict):
+            raise TypeError(f"Metrics must be a dict, got {type(metrics)}")
+        # Convert to dict[str, float] if needed
+        calculated_metrics: dict[str, float] = {
+            k: float(v) if isinstance(v, (int, float)) else 0.0
+            for k, v in metrics.items()
+        }
+
         # Create ReportGeneration instance with legacy constructor
         report_generator = self._report_generation_class(
             model=self._current_model,
@@ -594,7 +711,7 @@ class ModelAssessment(BaseStep):
             export_report_after_generate=True,
             # Pass pre-calculated values to avoid recomputation
             predictions=pd.Series(self.results["predictions"]),
-            calculated_metrics=self.results["metrics"],
+            calculated_metrics=calculated_metrics,
             plot_config=plot_config,
         )
 
@@ -641,13 +758,19 @@ class ModelAssessment(BaseStep):
         if not self.results:
             raise ValueError("No evaluation results found. Run evaluate() first.")
 
-        if metric_name not in self.results["metrics"]:
-            available_metrics = list(self.results["metrics"].keys())
+        metrics = self.results["metrics"]
+        if not isinstance(metrics, dict):
+            raise ValueError("Metrics is not a dictionary")
+        if metric_name not in metrics:
+            available_metrics = list(metrics.keys())
             raise ValueError(
                 f"Metric '{metric_name}' not found. Available metrics: {available_metrics}"
             )
 
-        return self.results["metrics"][metric_name]
+        metric_value = metrics[metric_name]
+        if not isinstance(metric_value, (int, float)):
+            raise ValueError(f"Metric value is not a number: {type(metric_value)}")
+        return float(metric_value)
 
     def summary(self) -> str:
         """Generate a formatted text summary of evaluation results.
@@ -693,10 +816,16 @@ class ModelAssessment(BaseStep):
         ]
 
         # Add formatted metric values
-        for metric_name, metric_value in self.results["metrics"].items():
-            if not np.isnan(metric_value):
-                summary_lines.append(f"  {metric_name}: {metric_value:.4f}")
-            else:
-                summary_lines.append(f"  {metric_name}: N/A")
+        metrics = self.results["metrics"]
+        if not isinstance(metrics, dict):
+            summary_lines.append("  Metrics: N/A (invalid format)")
+        else:
+            for metric_name, metric_value in metrics.items():
+                if isinstance(metric_value, (int, float)) and not np.isnan(
+                    metric_value
+                ):
+                    summary_lines.append(f"  {metric_name}: {metric_value:.4f}")
+                else:
+                    summary_lines.append(f"  {metric_name}: N/A")
 
         return "\n".join(summary_lines)

@@ -2,9 +2,10 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import pandas as pd
+import numpy as np
 
 from pathlib import Path
-from typing import Callable, Any
+from typing import Callable, Union
 from torch.utils.data import DataLoader
 from pydantic import field_validator
 
@@ -223,7 +224,37 @@ class TrainerConfig(ModelTrainerConfig):
         return value
 
 
-class ModelTrainer(BaseStep):
+# Type aliases for complex union types
+_ModelTrainerInput = Union[dict, tuple, list]
+_ModelTrainerPreProcessed = dict[str, Union[pd.DataFrame, pd.Series, dict, None]]
+_ModelTrainerRunOutput = dict[
+    str,
+    Union[pd.DataFrame, pd.Series, dict, MLP, SklearnModels, list, None],
+]
+_ModelTrainerOutput = dict[
+    str,
+    Union[
+        pd.DataFrame,
+        pd.Series,
+        dict,
+        MLP,
+        SklearnModels,
+        list,
+        bool,
+        str,
+        TrainerConfig,
+    ],
+]
+
+
+class ModelTrainer(
+    BaseStep[
+        _ModelTrainerInput,
+        _ModelTrainerPreProcessed,
+        _ModelTrainerRunOutput,
+        _ModelTrainerOutput,
+    ]
+):
     """Simplified model trainer focused on training with delegated evaluation.
 
     This class handles the training process for both PyTorch neural networks (MLP)
@@ -308,9 +339,7 @@ class ModelTrainer(BaseStep):
             self.optimizer: torch.optim.Optimizer | None = self._get_optimizer(
                 self.config.optimizer
             )
-            self.criterion: Callable[..., Any] | None = self._get_fn_cost(
-                self.config.criterion
-            )
+            self.criterion: Callable | None = self._get_fn_cost(self.config.criterion)
         else:
             self.optimizer = None
             self.criterion = None
@@ -326,7 +355,9 @@ class ModelTrainer(BaseStep):
         self.shuffle_train = config.shuffle_train
         self.history: list = []
 
-    def pre_process(self, data: Any) -> dict[str, Any]:
+    def pre_process(
+        self, data: dict | tuple | list
+    ) -> dict[str, pd.DataFrame | pd.Series | dict | None]:
         """Standardizes the input of the step.
 
         Validates and standardizes the input data format for training.
@@ -336,7 +367,7 @@ class ModelTrainer(BaseStep):
                   Can be a dict or any structure containing the required training data.
 
         Returns:
-            dict[str, Any]: Standardized data dictionary with required keys.
+            dict[str, pd.DataFrame | pd.Series | dict | None]: Standardized data dictionary with required keys.
 
         Raises:
             ValueError: If required training data is missing.
@@ -370,23 +401,31 @@ class ModelTrainer(BaseStep):
 
         return processed_data
 
-    def run(self, data: dict[str, Any]) -> dict[str, Any]:
+    def run(
+        self, data: dict[str, pd.DataFrame | pd.Series | dict | None]
+    ) -> dict[str, pd.DataFrame | pd.Series | dict | MLP | SklearnModels | list | None]:
         """Main logic of the step.
 
         Performs the actual model training using the provided data.
 
         Args:
-            data (dict[str, Any]): Preprocessed data containing training information.
+            data (dict[str, pd.DataFrame | pd.Series | dict | None]): Preprocessed data containing training information.
 
         Returns:
-            dict[str, Any]: Data with training results added.
+            dict[str, pd.DataFrame | pd.Series | dict | MLP | SklearnModels | list | None]: Data with training results added.
         """
         # Extract training parameters
         x_train = data["x_train"]
         y_train = data["y_train"]
         x_val = data.get("x_val")
         y_val = data.get("y_val")
-        kwargs = data.get("kwargs", {})
+        kwargs_value = data.get("kwargs", {})
+
+        # Ensure kwargs is a dict for unpacking
+        if not isinstance(kwargs_value, dict):
+            kwargs = {}
+        else:
+            kwargs = kwargs_value
 
         # Perform training
         self.train(x_train, y_train, x_val, y_val, **kwargs)
@@ -398,16 +437,32 @@ class ModelTrainer(BaseStep):
 
         return data
 
-    def post_process(self, data: dict[str, Any]) -> dict[str, Any]:
+    def post_process(
+        self,
+        data: dict[
+            str, pd.DataFrame | pd.Series | dict | MLP | SklearnModels | list | None
+        ],
+    ) -> dict[
+        str,
+        pd.DataFrame
+        | pd.Series
+        | dict
+        | MLP
+        | SklearnModels
+        | list
+        | bool
+        | str
+        | TrainerConfig,
+    ]:
         """Standardizes the output of the step.
 
         Performs any final processing and ensures output format consistency.
 
         Args:
-            data (dict[str, Any]): Data with training results.
+            data (dict[str, pd.DataFrame | pd.Series | dict | MLP | SklearnModels | list | None]): Data with training results.
 
         Returns:
-            dict[str, Any]: Final processed data ready for next pipeline step.
+            dict[str, pd.DataFrame | pd.Series | dict | MLP | SklearnModels | list | bool | str | TrainerConfig]: Final processed data ready for next pipeline step.
         """
         # Ensure all expected outputs are present
         expected_outputs = ["model", "history", "trainer"]
@@ -499,7 +554,10 @@ class ModelTrainer(BaseStep):
             raise ValueError(f"Unknown criterion: {criterion}")
 
     def _create_dataloader(
-        self, x: Any, y: Any = None, shuffle: bool = False
+        self,
+        x: pd.DataFrame | pd.Series,
+        y: pd.DataFrame | pd.Series | None = None,
+        shuffle: bool = False,
     ) -> DataLoader:
         """Create a PyTorch DataLoader from pandas DataFrame/Series.
 
@@ -507,8 +565,8 @@ class ModelTrainer(BaseStep):
         in a DataLoader for batch processing during training.
 
         Args:
-            x (Any): Input features as pandas DataFrame or compatible structure.
-            y (Any, optional): Target labels as pandas DataFrame/Series or
+            x (pd.DataFrame | pd.Series): Input features as pandas DataFrame or compatible structure.
+            y (pd.DataFrame | pd.Series | None, optional): Target labels as pandas DataFrame/Series or
                 compatible structure. If None, creates empty tensors.
             shuffle (bool, optional): Whether to shuffle data in the DataLoader.
                 Defaults to False.
@@ -661,12 +719,12 @@ class ModelTrainer(BaseStep):
 
     def call_trainer(
         self,
-        x_train: Any,
-        y_train: Any,
-        x_val: Any = None,
-        y_val: Any = None,
+        x_train: pd.DataFrame | pd.Series,
+        y_train: pd.DataFrame | pd.Series,
+        x_val: pd.DataFrame | pd.Series | None = None,
+        y_val: pd.DataFrame | pd.Series | None = None,
         **kwargs,
-    ) -> dict[str, list[Any]] | None:
+    ) -> dict[str, list[float]] | None:
         """Call the appropriate training method based on model type.
 
         Dispatches training to either PyTorch neural network training loop
@@ -674,14 +732,14 @@ class ModelTrainer(BaseStep):
         transparently.
 
         Args:
-            x_train (Any): Training input features.
-            y_train (Any): Training target labels.
-            x_val (Any, optional): Validation input features.
-            y_val (Any, optional): Validation target labels.
+            x_train (pd.DataFrame | pd.Series): Training input features.
+            y_train (pd.DataFrame | pd.Series): Training target labels.
+            x_val (pd.DataFrame | pd.Series | None, optional): Validation input features.
+            y_val (pd.DataFrame | pd.Series | None, optional): Validation target labels.
             **kwargs: Additional arguments passed to the model's fit method.
 
         Returns:
-            dict[str, list[Any]] | None: Training history dictionary for PyTorch
+            dict[str, list[float]] | None: Training history dictionary for PyTorch
                 models (containing loss/metric trajectories), or None for
                 scikit-learn models.
         """
@@ -756,26 +814,26 @@ class ModelTrainer(BaseStep):
 
     def assess(
         self,
-        x_test: Any,
-        y_test: Any,
+        x_test: pd.DataFrame | pd.Series | np.ndarray,
+        y_test: pd.DataFrame | pd.Series | np.ndarray,
         assessment_config: ModelAssessmentConfig | None = None,
         **kwargs,
-    ) -> dict[str, Any]:
+    ) -> dict[str, str | np.ndarray | dict[str, float] | dict | pd.Timestamp]:
         """Evaluate the trained model using ModelAssessment.
 
         This is a convenience method that creates a ModelAssessment instance
         and evaluates the current model on the provided test data.
 
         Args:
-            x_test (Any): Test input features for evaluation.
-            y_test (Any): Test target labels for evaluation.
+            x_test (pd.DataFrame | pd.Series | np.ndarray): Test input features for evaluation.
+            y_test (pd.DataFrame | pd.Series | np.ndarray): Test target labels for evaluation.
             assessment_config (ModelAssessmentConfig | None, optional):
                 Configuration for the assessment process. If None, creates
                 a default configuration based on the task type.
             **kwargs: Additional arguments passed to ModelAssessment.evaluate().
 
         Returns:
-            dict[str, Any]: Dictionary containing evaluation results with
+            dict[str, str | np.ndarray | dict[str, float] | dict | pd.Timestamp]: Dictionary containing evaluation results with
                 metrics, predictions, and other assessment information.
 
         Example:

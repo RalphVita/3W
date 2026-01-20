@@ -6,13 +6,13 @@ from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 from ..core.base_models import ModelsConfig, BaseModels
 from ..core.enums import ModelTypeEnum, ActivationFunctionEnum
-from typing import Iterable, Any, TypeAlias, Callable
+from typing import Iterable, TypeAlias, Callable
 from pydantic import Field, field_validator
 
 # Type alias for PyTorch model parameters
 ParamsT: TypeAlias = (
     Iterable[torch.Tensor]
-    | Iterable[dict[str, Any]]
+    | Iterable[dict[str, torch.Tensor | int | float | str | bool]]
     | Iterable[tuple[str, torch.Tensor]]
 )
 
@@ -463,7 +463,7 @@ class MLP(BaseModels, nn.Module):
         criterion: Callable,
         val_loader: DataLoader | None = None,
         device: str = "cuda" if torch.cuda.is_available() else "cpu",
-    ) -> dict[str, list[Any]]:
+    ) -> dict[str, list[float]]:
         """Train the MLP model with the provided data and configuration.
 
         Executes the complete training process including forward/backward passes,
@@ -487,7 +487,7 @@ class MLP(BaseModels, nn.Module):
                 Defaults to 'cuda' if available, otherwise 'cpu'.
 
         Returns:
-            dict[str, list[Any]]: Training history dictionary containing:
+            dict[str, list[float]]: Training history dictionary containing:
                 - 'train_loss': List of average training losses per epoch
                 - 'val_loss': List of validation losses per epoch (if val_loader provided)
 
@@ -537,7 +537,7 @@ class MLP(BaseModels, nn.Module):
         self.model.to(device)
 
         # Initialize loss tracking dictionary
-        loss_dict: dict[str, list[Any]] = {"train_loss": []}
+        loss_dict: dict[str, list[float]] = {"train_loss": []}
 
         # Add validation loss tracking if validation data provided
         if val_loader is not None:
@@ -665,7 +665,7 @@ class MLP(BaseModels, nn.Module):
             raise ValueError("Model should be built before prediction")
 
         self.model.eval()  # Set model to evaluation mode
-        y_pred: list[Any] = []
+        y_pred: list[int | float] = []
 
         # Disable gradient computation for efficiency
         with torch.no_grad():

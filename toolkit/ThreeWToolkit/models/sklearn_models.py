@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from typing import Any, Callable, Iterable
+from typing import Callable, Iterable
 from pydantic import Field
 
 from sklearn.linear_model import LogisticRegression
@@ -32,7 +32,7 @@ SKLEARN_MODELS = {
 class SklearnModelsConfig(ModelsConfig):
     """Configuration that extends the base ModelsConfig for scikit-learn models."""
 
-    model_params: dict[str, Any] = Field(
+    model_params: dict[str, int | float | str | bool | None] = Field(
         default_factory=dict, description="Hyperparameters for the scikit-learn model."
     )
 
@@ -62,7 +62,9 @@ class SklearnModels(BaseModels):
             params["random_state"] = config.random_seed
         self.model = model_class(**params)
 
-    def _ensure_dataframe(self, x: Any) -> Any:
+    def _ensure_dataframe(
+        self, x: pd.DataFrame | pd.Series | np.ndarray
+    ) -> pd.DataFrame | pd.Series | np.ndarray:
         """
         Ensures input is in the correct format (DataFrame if possible).
         Preserves DataFrame structure to avoid feature name warnings.
@@ -82,7 +84,12 @@ class SklearnModels(BaseModels):
             return pd.DataFrame(x, columns=self._feature_names)
         return x
 
-    def fit(self, x: Any, y: Any = None, **kwargs):
+    def fit(
+        self,
+        x: pd.DataFrame | pd.Series | np.ndarray,
+        y: pd.DataFrame | pd.Series | np.ndarray | None = None,
+        **kwargs,
+    ):
         """Trains the model on the given data."""
         # Store feature names if x is a DataFrame
         if isinstance(x, pd.DataFrame):
@@ -90,13 +97,18 @@ class SklearnModels(BaseModels):
 
         return self.model.fit(x, y, **kwargs)
 
-    def predict(self, x: Any) -> Any:
+    def predict(self, x: pd.DataFrame | pd.Series | np.ndarray) -> np.ndarray:
         """Makes predictions using the chosen sklearn model."""
         # Ensure consistent format with training data
         x = self._ensure_dataframe(x)
         return self.model.predict(x)
 
-    def evaluate(self, x: Any, y: Any, metrics: list[Callable]):
+    def evaluate(
+        self,
+        x: pd.DataFrame | pd.Series | np.ndarray,
+        y: pd.DataFrame | pd.Series | np.ndarray,
+        metrics: list[Callable],
+    ):
         """
         Evaluates the model using a provided list of metric functions.
         """
@@ -143,11 +155,11 @@ class SklearnModels(BaseModels):
 
         return results
 
-    def get_params(self) -> Iterable[dict[str, Any]]:
+    def get_params(self) -> Iterable[dict[str, int | float | str | bool | None]]:
         """Gets the model's parameters."""
         return self.model.get_params()
 
-    def set_params(self, **params: Any) -> None:
+    def set_params(self, **params: int | float | str | bool | None) -> None:
         """Sets the model's parameters."""
         self.model.set_params(**params)
 
