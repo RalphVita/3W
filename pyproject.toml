@@ -44,6 +44,9 @@ dependencies = [
     "pylatex>=1.4.2",
     "statsmodels>=0.14.5",
     "requests<=2.35.5",
+    "mypy>=1.19.1",
+    "black>=26.1.0",
+    "ruff>=0.14.13",
 ]
 
 [project.urls]

@@ -126,8 +126,12 @@ class ParquetDataset(BaseStep):
         """
         if isinstance(self.config.event_type, list):
             return any(
-                event.name.startswith(t.value if hasattr(t, "value") else t)
-                for t in self.config.event_type
+                event.name.startswith(
+                    event_type_value.value
+                    if hasattr(event_type_value, "value")
+                    else event_type_value
+                )
+                for event_type_value in self.config.event_type
             )
         else:  # Default: accept all
             return True
