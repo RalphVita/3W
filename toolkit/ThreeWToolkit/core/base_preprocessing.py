@@ -13,7 +13,11 @@ class ImputeMissingConfig(BaseModel):
 
     @field_validator("fill_value")
     @classmethod
-    def check_fill_value_for_constant(cls: type["ImputeMissingConfig"], fill_value: int | float | None, info: ValidationInfo) -> int | float | None:
+    def check_fill_value_for_constant(
+        cls: type["ImputeMissingConfig"],
+        fill_value: int | float | None,
+        info: ValidationInfo,
+    ) -> int | float | None:
         strategy = info.data.get("strategy")
         if strategy == "constant" and fill_value is None:
             raise ValueError("You must provide `fill_value` when strategy='constant'")
@@ -42,7 +46,9 @@ class WindowingConfig(BaseModel):
 
     @field_validator("window")
     @classmethod
-    def validate_window(cls: type["WindowingConfig"], window: str | tuple) -> str | tuple:
+    def validate_window(
+        cls: type["WindowingConfig"], window: str | tuple
+    ) -> str | tuple:
         """
         Validate that the window configuration is correct.
 
@@ -124,7 +130,11 @@ class RenameColumnsConfig(BaseModel):
 
     @field_validator("columns_map")
     @classmethod
-    def validate_columns_exist(cls: type["RenameColumnsConfig"], columns_map: dict[str, str], info: ValidationInfo) -> dict[str, str]:
+    def validate_columns_exist(
+        cls: type["RenameColumnsConfig"],
+        columns_map: dict[str, str],
+        info: ValidationInfo,
+    ) -> dict[str, str]:
         """
         Validate that all columns to be renamed exist in the DataFrame.
 
@@ -148,7 +158,9 @@ class RenameColumnsConfig(BaseModel):
 
     @field_validator("columns_map")
     @classmethod
-    def validate_unique_new_column_names(cls: type["RenameColumnsConfig"], columns_map: dict[str, str]) -> dict[str, str]:
+    def validate_unique_new_column_names(
+        cls: type["RenameColumnsConfig"], columns_map: dict[str, str]
+    ) -> dict[str, str]:
         """
         Validate that new column names are unique.
 
