@@ -15,19 +15,41 @@ class OverlapOffsetMixin(BaseModel):
 
     @field_validator("overlap")
     @classmethod
-    def check_overlap_range(cls, v):
-        """Validates that overlap is in the [0, 1) range."""
-        if not 0 <= v < 1:
+    def check_overlap_range(cls, overlap: float) -> float:
+        """
+        Validate that overlap is in the [0, 1) range.
+
+        Args:
+            overlap (float): Overlap value to validate.
+
+        Returns:
+            float: Validated overlap value.
+
+        Raises:
+            ValueError: If overlap is not in [0, 1).
+        """
+        if not 0 <= overlap < 1:
             raise ValueError("Overlap must be in the range [0, 1)")
-        return v
+        return overlap
 
     @field_validator("offset")
     @classmethod
-    def check_offset_value(cls, v):
-        """Validates that offset is not negative."""
-        if v < 0:
+    def check_offset_value(cls, offset: int) -> int:
+        """
+        Validate that offset is not negative.
+
+        Args:
+            offset (int): Offset value to validate.
+
+        Returns:
+            int: Validated offset value.
+
+        Raises:
+            ValueError: If offset is negative.
+        """
+        if offset < 0:
             raise ValueError("Offset must be a non-negative integer.")
-        return v
+        return offset
 
 
 class EpsMixin(BaseModel):
@@ -37,11 +59,22 @@ class EpsMixin(BaseModel):
 
     @field_validator("eps")
     @classmethod
-    def check_eps_value(cls, v):
-        """Validates that epsilon is a small, positive number."""
-        if v <= 0:
+    def check_eps_value(cls, eps: float) -> float:
+        """
+        Validate that epsilon is a small, positive number.
+
+        Args:
+            eps (float): Epsilon value to validate.
+
+        Returns:
+            float: Validated epsilon value.
+
+        Raises:
+            ValueError: If eps is not positive.
+        """
+        if eps <= 0:
             raise ValueError("Epsilon (eps) must be positive.")
-        return v
+        return eps
 
 
 class WindowSizeMixin(BaseModel):
@@ -51,11 +84,22 @@ class WindowSizeMixin(BaseModel):
 
     @field_validator("window_size")
     @classmethod
-    def check_window_size(cls, v):
-        """Validates that window_size is positive."""
-        if v <= 0:
+    def check_window_size(cls, window_size: int) -> int:
+        """
+        Validate that window_size is positive.
+
+        Args:
+            window_size (int): Window size to validate.
+
+        Returns:
+            int: Validated window size.
+
+        Raises:
+            ValueError: If window_size is not positive.
+        """
+        if window_size <= 0:
             raise ValueError("Window size must be a positive integer.")
-        return v
+        return window_size
 
 
 class FeatureSelectionMixin(BaseModel):
@@ -89,7 +133,18 @@ class StatisticalConfig(
     def validate_selected_features(
         cls: type["StatisticalConfig"], selected_features: list[str] | None
     ) -> list[str] | None:
-        """Validates that selected features are available."""
+        """
+        Validate that selected features are available.
+
+        Args:
+            selected_features (list[str] | None): List of features selected for extraction.
+
+        Returns:
+            list[str] | None: Validated list of selected features.
+
+        Raises:
+            ValueError: If any selected feature is not available.
+        """
         if selected_features is not None:
             invalid_features = set(selected_features) - set(cls.AVAILABLE_FEATURES)
             if invalid_features:
@@ -125,18 +180,40 @@ class EWStatisticalConfig(
 
     @field_validator("decay")
     @classmethod
-    def check_decay_range(cls, v):
-        """Validates that decay is in the (0, 1] range."""
-        if not 0 < v <= 1:
+    def check_decay_range(cls, decay: float) -> float:
+        """
+        Validate that decay is in the (0, 1] range.
+
+        Args:
+            decay (float): Decay value to validate.
+
+        Returns:
+            float: Validated decay value.
+
+        Raises:
+            ValueError: If decay is not in (0, 1].
+        """
+        if not 0 < decay <= 1:
             raise ValueError("Decay must be in the range (0, 1]")
-        return v
+        return decay
 
     @field_validator("selected_features")
     @classmethod
     def validate_selected_features(
         cls: type["EWStatisticalConfig"], selected_features: list[str] | None
     ) -> list[str] | None:
-        """Validates that selected features are available."""
+        """
+        Validate that selected features are available.
+
+        Args:
+            selected_features (list[str] | None): List of features selected for extraction.
+
+        Returns:
+            list[str] | None: Validated list of selected features.
+
+        Raises:
+            ValueError: If any selected feature is not available.
+        """
         if selected_features is not None:
             invalid_features = set(selected_features) - set(cls.AVAILABLE_FEATURES)
             if invalid_features:
@@ -167,19 +244,41 @@ class WaveletConfig(OverlapOffsetMixin, FeatureSelectionMixin):
 
     @field_validator("level")
     @classmethod
-    def check_level_is_positive(cls, v):
-        """Validates that the wavelet level is a positive integer."""
-        if v < 1:
+    def check_level_is_positive(cls, level: int) -> int:
+        """
+        Validate that the wavelet level is a positive integer.
+
+        Args:
+            level (int): Decomposition level to validate.
+
+        Returns:
+            int: Validated level.
+
+        Raises:
+            ValueError: If level is less than 1.
+        """
+        if level < 1:
             raise ValueError("Wavelet level must be a positive integer (>= 1).")
-        return v
+        return level
 
     @field_validator("wavelet")
     @classmethod
-    def check_wavelet_name(cls, v):
-        """Validates that the wavelet name is supported by AvailableWaveletsEnum."""
-        if v not in cls.AVAILABLE_WAVELETS:
+    def check_wavelet_name(cls, wavelet: str) -> str:
+        """
+        Validate that the wavelet name is supported by AvailableWaveletsEnum.
+
+        Args:
+            wavelet (str): Wavelet name to validate.
+
+        Returns:
+            str: Validated wavelet name.
+
+        Raises:
+            ValueError: If wavelet name is not supported.
+        """
+        if wavelet not in cls.AVAILABLE_WAVELETS:
             raise ValueError(
-                f"Wavelet '{v}' is not supported. "
+                f"Wavelet '{wavelet}' is not supported. "
                 f"Available wavelets: {cls.AVAILABLE_WAVELETS}"
             )
-        return v
+        return wavelet

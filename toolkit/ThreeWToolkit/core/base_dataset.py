@@ -71,7 +71,16 @@ class ParquetDatasetConfig(BaseModel):
     ) -> list[str] | list[Path] | None:
         """
         Ensure that `file_list` is only provided when `split=="list"`.
-        Raise a ValueError otherwise.
+
+        Args:
+            file_list (list[str] | list[Path] | None): List of files to load.
+            info (ValidationInfo): Validation info containing the split.
+
+        Returns:
+            list[str] | list[Path] | None: Validated file list.
+
+        Raises:
+            ValueError: If file_list is provided incorrectly based on split.
         """
         split = info.data.get("split")
         if split == "list" and file_list is None:
@@ -88,7 +97,16 @@ class ParquetDatasetConfig(BaseModel):
     ) -> list[EventPrefixEnum] | list[str] | None:
         """
         Ensure that all event types are valid string values of EventPrefixEnum.
-        Raise a ValueError if an unknown type is provided.
+
+        Args:
+            event_type (list[EventPrefixEnum] | list[str] | None): List of event types.
+
+        Returns:
+            list[EventPrefixEnum] | list[str] | None: Validated event types.
+
+        Raises:
+            ValueError: If an unknown type is provided.
+            TypeError: If event_type is not a list of strings.
         """
         if event_type is not None:
             valid_strs = {e.value for e in EventPrefixEnum}

@@ -18,6 +18,19 @@ class ImputeMissingConfig(BaseModel):
         fill_value: int | float | None,
         info: ValidationInfo,
     ) -> int | float | None:
+        """
+        Validate that `fill_value` is provided when strategy is 'constant'.
+
+        Args:
+            fill_value (int | float | None): Value to fill missing data with.
+            info (ValidationInfo): Validation info containing the strategy.
+
+        Returns:
+            int | float | None: Validated fill value.
+
+        Raises:
+            ValueError: If strategy is 'constant' but fill_value is None.
+        """
         strategy = info.data.get("strategy")
         if strategy == "constant" and fill_value is None:
             raise ValueError("You must provide `fill_value` when strategy='constant'")
