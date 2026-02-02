@@ -64,7 +64,11 @@ class ParquetDatasetConfig(BaseModel):
 
     @field_validator("file_list")
     @classmethod
-    def validate_file_list(cls: type["ParquetDatasetConfig"], file_list: list[str] | list[Path] | None, info: ValidationInfo) -> list[str] | list[Path] | None:
+    def validate_file_list(
+        cls: type["ParquetDatasetConfig"],
+        file_list: list[str] | list[Path] | None,
+        info: ValidationInfo,
+    ) -> list[str] | list[Path] | None:
         """
         Ensure that `file_list` is only provided when `split=="list"`.
         Raise a ValueError otherwise.
@@ -78,7 +82,10 @@ class ParquetDatasetConfig(BaseModel):
 
     @field_validator("event_type")
     @classmethod
-    def validate_event_type(cls: type["ParquetDatasetConfig"], event_type: list[EventPrefixEnum] | list[str] | None) -> list[EventPrefixEnum] | list[str] | None:
+    def validate_event_type(
+        cls: type["ParquetDatasetConfig"],
+        event_type: list[EventPrefixEnum] | list[str] | None,
+    ) -> list[EventPrefixEnum] | list[str] | None:
         """
         Ensure that all event types are valid string values of EventPrefixEnum.
         Raise a ValueError if an unknown type is provided.

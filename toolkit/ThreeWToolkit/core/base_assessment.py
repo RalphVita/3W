@@ -67,7 +67,9 @@ class ModelAssessmentConfig(BaseModel):
 
     @field_validator("task_type")
     @classmethod
-    def validate_task_type(cls: type["ModelAssessmentConfig"], task_type: TaskTypeEnum) -> TaskTypeEnum:
+    def validate_task_type(
+        cls: type["ModelAssessmentConfig"], task_type: TaskTypeEnum
+    ) -> TaskTypeEnum:
         """
         Validate that the task type is supported.
 
@@ -87,7 +89,9 @@ class ModelAssessmentConfig(BaseModel):
 
     @field_validator("metrics")
     @classmethod
-    def validate_metrics(cls: type["ModelAssessmentConfig"], metrics: list[str]) -> list[str]:
+    def validate_metrics(
+        cls: type["ModelAssessmentConfig"], metrics: list[str]
+    ) -> list[str]:
         """
         Validate that the requested metrics are supported.
 

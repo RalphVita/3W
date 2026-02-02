@@ -86,7 +86,9 @@ class StatisticalConfig(
 
     @field_validator("selected_features")
     @classmethod
-    def validate_selected_features(cls: type["StatisticalConfig"], selected_features: list[str] | None) -> list[str] | None:
+    def validate_selected_features(
+        cls: type["StatisticalConfig"], selected_features: list[str] | None
+    ) -> list[str] | None:
         """Validates that selected features are available."""
         if selected_features is not None:
             invalid_features = set(selected_features) - set(cls.AVAILABLE_FEATURES)
@@ -131,7 +133,9 @@ class EWStatisticalConfig(
 
     @field_validator("selected_features")
     @classmethod
-    def validate_selected_features(cls: type["EWStatisticalConfig"], selected_features: list[str] | None) -> list[str] | None:
+    def validate_selected_features(
+        cls: type["EWStatisticalConfig"], selected_features: list[str] | None
+    ) -> list[str] | None:
         """Validates that selected features are available."""
         if selected_features is not None:
             invalid_features = set(selected_features) - set(cls.AVAILABLE_FEATURES)

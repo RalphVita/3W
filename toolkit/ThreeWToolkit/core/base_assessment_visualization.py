@@ -9,7 +9,9 @@ class AssessmentVisualizationConfig(BaseModel):
 
     @field_validator("class_names")
     @classmethod
-    def validate_class_names(cls: type["AssessmentVisualizationConfig"], class_names: list[str] | None) -> list[str] | None:
+    def validate_class_names(
+        cls: type["AssessmentVisualizationConfig"], class_names: list[str] | None
+    ) -> list[str] | None:
         """
         Validate that the provided class names are valid.
 

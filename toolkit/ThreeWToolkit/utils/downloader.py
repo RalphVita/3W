@@ -81,7 +81,9 @@ class GetFigshareDataValidator(BaseModel):
 
     @field_validator("chunk_size")
     @classmethod
-    def validate_chunk_size(cls: type["GetFigshareDataValidator"], chunk_size: int) -> int:
+    def validate_chunk_size(
+        cls: type["GetFigshareDataValidator"], chunk_size: int
+    ) -> int:
         """Validate that chunk size is positive.
 
         Args:
