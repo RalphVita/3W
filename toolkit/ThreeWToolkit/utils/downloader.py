@@ -47,6 +47,7 @@ class GetFigshareDataValidator(BaseModel):
         """Validate that the path exists and is a directory.
 
         Args:
+            cls (GetFigshareDataValidator): The class reference.
             path (Path): Path to validate.
 
         Returns:
@@ -67,6 +68,7 @@ class GetFigshareDataValidator(BaseModel):
         """Validate that the version is supported.
 
         Args:
+            cls (GetFigshareDataValidator): The class reference.
             version (str): Version string to validate.
 
         Returns:
@@ -87,6 +89,7 @@ class GetFigshareDataValidator(BaseModel):
         """Validate that chunk size is positive.
 
         Args:
+            cls (GetFigshareDataValidator): The class reference.
             chunk_size (int): Chunk size to validate.
 
         Returns:

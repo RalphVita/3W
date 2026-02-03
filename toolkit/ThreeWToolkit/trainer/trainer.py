@@ -90,10 +90,11 @@ class TrainerConfig(ModelTrainerConfig):
 
     @field_validator("batch_size")
     @classmethod
-    def check_batch_size(cls, value):
+    def check_batch_size(cls: type["TrainerConfig"], value):
         """Validate that batch_size is positive.
 
         Args:
+            cls (TrainerConfig): The class reference.
             value (int): The batch size value to validate.
 
         Returns:
@@ -108,10 +109,11 @@ class TrainerConfig(ModelTrainerConfig):
 
     @field_validator("epochs")
     @classmethod
-    def check_epochs(cls, value):
+    def check_epochs(cls: type["TrainerConfig"], value):
         """Validate that epochs is positive.
 
         Args:
+            cls (TrainerConfig): The class reference.
             value (int): The number of epochs to validate.
 
         Returns:
@@ -126,10 +128,11 @@ class TrainerConfig(ModelTrainerConfig):
 
     @field_validator("learning_rate")
     @classmethod
-    def check_learning_rate(cls, value):
+    def check_learning_rate(cls: type["TrainerConfig"], value):
         """Validate that learning_rate is positive.
 
         Args:
+            cls (TrainerConfig): The class reference.
             value (float): The learning rate value to validate.
 
         Returns:
@@ -144,10 +147,11 @@ class TrainerConfig(ModelTrainerConfig):
 
     @field_validator("n_splits")
     @classmethod
-    def check_n_splits(cls, value, values):
+    def check_n_splits(cls: type["TrainerConfig"], value, values):
         """Validate n_splits when cross-validation is enabled.
 
         Args:
+            cls (TrainerConfig): The class reference.
             value (int): The number of splits to validate.
             values: The validation context containing other field values.
 
@@ -168,10 +172,11 @@ class TrainerConfig(ModelTrainerConfig):
 
     @field_validator("optimizer")
     @classmethod
-    def check_optimizer(cls, value):
+    def check_optimizer(cls: type["TrainerConfig"], value):
         """Validate that optimizer is from the supported list.
 
         Args:
+            cls (TrainerConfig): The class reference.
             value (str): The optimizer name to validate.
 
         Returns:
@@ -187,10 +192,11 @@ class TrainerConfig(ModelTrainerConfig):
 
     @field_validator("criterion")
     @classmethod
-    def check_criterion(cls, value):
+    def check_criterion(cls: type["TrainerConfig"], value):
         """Validate that criterion is from the supported list.
 
         Args:
+            cls (TrainerConfig): The class reference.
             value (str): The criterion name to validate.
 
         Returns:
@@ -206,10 +212,11 @@ class TrainerConfig(ModelTrainerConfig):
 
     @field_validator("device")
     @classmethod
-    def check_device(cls, value):
+    def check_device(cls: type["TrainerConfig"], value):
         """Validate that device is either 'cpu' or 'cuda'.
 
         Args:
+            cls (TrainerConfig): The class reference.
             value (str): The device name to validate.
 
         Returns:
@@ -317,12 +324,6 @@ class ModelTrainer(
     """
 
     def __init__(self, config: TrainerConfig) -> None:
-        """Initialize the ModelTrainer with the given configuration.
-
-        Args:
-            config (TrainerConfig): Configuration object containing all
-                training parameters and model settings.
-        """
         """Initialize the ModelTrainer with the given configuration.
 
         Args:

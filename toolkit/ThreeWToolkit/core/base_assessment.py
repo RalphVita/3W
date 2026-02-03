@@ -74,6 +74,7 @@ class ModelAssessmentConfig(BaseModel):
         Validate that the task type is supported.
 
         Args:
+            cls (ModelAssessmentConfig): The class reference.
             task_type (TaskTypeEnum): Task type to validate.
 
         Returns:
@@ -96,6 +97,7 @@ class ModelAssessmentConfig(BaseModel):
         Validate that the requested metrics are supported.
 
         Args:
+            cls (ModelAssessmentConfig): The class reference.
             metrics (list[str]): List of metric names.
 
         Returns:
@@ -129,6 +131,7 @@ class ModelAssessmentConfig(BaseModel):
         Validate that the computation device is supported.
 
         Args:
+            cls (ModelAssessmentConfig): The class reference.
             device (str): Device name ('cpu' or 'cuda').
 
         Returns:

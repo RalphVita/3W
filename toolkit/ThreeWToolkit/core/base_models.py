@@ -11,7 +11,21 @@ class ModelsConfig(BaseModel):
 
     @field_validator("model_type")
     @classmethod
-    def check_model_type(cls, value, info):
+    def check_model_type(cls: type["ModelsConfig"], value, info):
+        """Validate that model_type is supported.
+
+        Args:
+            cls (ModelsConfig): The class reference.
+            value (ModelTypeEnum | str): The model type to validate.
+            info: Validation info.
+
+        Returns:
+            ModelTypeEnum | str: Validated model type.
+
+        Raises:
+            ValueError: If model_type is missing.
+            NotImplementedError: If model_type is not supported.
+        """
         valid_types = {e for e in ModelTypeEnum}
         valid_strs = {e.value for e in ModelTypeEnum}
         if value is None:

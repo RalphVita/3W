@@ -13,7 +13,21 @@ class BaseScoreArgsValidator(BaseModel):
 
     @field_validator("y_true", "y_pred", "sample_weight", mode="before")
     @classmethod
-    def check_array_like(cls, value, info):
+    def check_array_like(cls: type["BaseScoreArgsValidator"], value, info):
+        """
+        Validate that input fields are array-like.
+
+        Args:
+            cls (BaseScoreArgsValidator): The class reference.
+            value: The value to validate.
+            info: Validation information.
+
+        Returns:
+            The validated value.
+
+        Raises:
+            TypeError: If the value is not a numpy array, pandas Series, or list.
+        """
         if info.field_name == "sample_weight" and value is None:
             return value
         if not isinstance(value, (np.ndarray, pd.Series, list)):
@@ -24,6 +38,15 @@ class BaseScoreArgsValidator(BaseModel):
 
     @model_validator(mode="after")
     def check_shapes(self):
+        """
+        Validate that y_true, y_pred, and sample_weight have consistent lengths.
+
+        Returns:
+            self: The model instance if validation succeeds.
+
+        Raises:
+            ValueError: If lengths of inputs do not match.
+        """
         ytrue_size = len(self.y_true)
         ypred_size = len(self.y_pred)
 
@@ -47,7 +70,20 @@ class LabelsValidator(BaseModel):
 
     @field_validator("labels", mode="before")
     @classmethod
-    def check_labels(cls, value):
+    def check_labels(cls: type["LabelsValidator"], value):
+        """
+        Validate that labels are a list or None.
+
+        Args:
+            cls (LabelsValidator): The class reference.
+            value: The labels to validate.
+
+        Returns:
+            list | None: The validated labels.
+
+        Raises:
+            TypeError: If labels is not a list and not None.
+        """
         if value is not None and not isinstance(value, list):
             raise TypeError(f"'labels' must be a list or None, got {type(value)}")
         return value
@@ -58,7 +94,20 @@ class PosLabelValidator(BaseModel):
 
     @field_validator("pos_label", mode="before")
     @classmethod
-    def check_pos_label(cls, value):
+    def check_pos_label(cls: type["PosLabelValidator"], value):
+        """
+        Validate that pos_label is a number or None.
+
+        Args:
+            cls (PosLabelValidator): The class reference.
+            value: The pos_label to validate.
+
+        Returns:
+            int | float | None: The validated pos_label.
+
+        Raises:
+            TypeError: If pos_label is not a number and not None.
+        """
         if not isinstance(value, (int, float)) and value is not None:
             raise TypeError(f"'pos_label' must be a number or None, got {type(value)}")
         return value
@@ -69,7 +118,20 @@ class AverageValidator(BaseModel):
 
     @field_validator("average", mode="before")
     @classmethod
-    def check_average(cls, value):
+    def check_average(cls: type["AverageValidator"], value):
+        """
+        Validate the average parameter.
+
+        Args:
+            cls (AverageValidator): The class reference.
+            value: The average method to use.
+
+        Returns:
+            str | None: The validated average method.
+
+        Raises:
+            ValueError: If average is not a valid option.
+        """
         allowed = {"micro", "macro", "samples", "weighted", "binary", None}
         if value not in allowed:
             raise ValueError(f"'average' must be one of {allowed}, got '{value}'")
@@ -81,7 +143,20 @@ class ZeroDivisionValidator(BaseModel):
 
     @field_validator("zero_division", mode="before")
     @classmethod
-    def check_zero_division(cls, value):
+    def check_zero_division(cls: type["ZeroDivisionValidator"], value):
+        """
+        Validate the zero_division parameter.
+
+        Args:
+            cls (ZeroDivisionValidator): The class reference.
+            value: The zero_division handling strategy.
+
+        Returns:
+            str | int: The validated zero_division value.
+
+        Raises:
+            ValueError: If zero_division is not valid.
+        """
         allowed = {"warn", 0, 1}
         if value not in allowed:
             raise ValueError(f"'zero_division' must be one of {allowed}, got '{value}'")
@@ -93,7 +168,20 @@ class AccuracyScoreConfig(BaseScoreArgsValidator):
 
     @field_validator("normalize", mode="before")
     @classmethod
-    def check_bool(cls, value):
+    def check_bool(cls: type["AccuracyScoreConfig"], value):
+        """
+        Validate boolean parameters.
+
+        Args:
+            cls (AccuracyScoreConfig): The class reference.
+            value: The value to validate.
+
+        Returns:
+            bool: The validated boolean value.
+
+        Raises:
+            TypeError: If the value is not a boolean.
+        """
         if not isinstance(value, bool):
             raise TypeError(
                 f"'normalize' must be a boolean, got {type(value)} with value '{value}'"
@@ -106,7 +194,20 @@ class BalancedAccuracyScoreConfig(BaseScoreArgsValidator):
 
     @field_validator("adjusted", mode="before")
     @classmethod
-    def check_bool(cls, value):
+    def check_bool(cls: type["BalancedAccuracyScoreConfig"], value):
+        """
+        Validate boolean parameters.
+
+        Args:
+            cls (BalancedAccuracyScoreConfig): The class reference.
+            value: The value to validate.
+
+        Returns:
+            bool: The validated boolean value.
+
+        Raises:
+            TypeError: If the value is not a boolean.
+        """
         if not isinstance(value, bool):
             raise TypeError(
                 f"'adjusted' must be a boolean, got {type(value)} with value '{value}'"
@@ -119,7 +220,20 @@ class AveragePrecisionScoreConfig(
 ):
     @field_validator("average", mode="before")
     @classmethod
-    def override_average_options(cls, value):
+    def override_average_options(cls: type["AveragePrecisionScoreConfig"], value):
+        """
+        Override average options for AveragePrecisionScore.
+
+        Args:
+            cls (AveragePrecisionScoreConfig): The class reference.
+            value: The average method to use.
+
+        Returns:
+            str | None: The validated average method.
+
+        Raises:
+            ValueError: If average is not a valid option.
+        """
         allowed = {"micro", "macro", "samples", "weighted", None}
         if value not in allowed:
             raise ValueError(f"'average' must be one of {allowed}, got '{value}'")
@@ -131,7 +245,20 @@ class MultiClassValidator(BaseModel):
 
     @field_validator("multi_class", mode="before")
     @classmethod
-    def check_multi_class(cls, value):
+    def check_multi_class(cls: type["MultiClassValidator"], value):
+        """
+        Validate the multi_class parameter.
+
+        Args:
+            cls (MultiClassValidator): The class reference.
+            value: The multi_class strategy.
+
+        Returns:
+            str: The validated multi_class strategy.
+
+        Raises:
+            ValueError: If multi_class is not a valid option.
+        """
         allowed = {"raise", "ovr", "ovo"}
         if value not in allowed:
             raise ValueError(f"'multi_class' must be one of {allowed}, got '{value}'")
@@ -143,7 +270,20 @@ class MaxFprValidator(BaseModel):
 
     @field_validator("max_fpr", mode="before")
     @classmethod
-    def check_max_fpr(cls, value):
+    def check_max_fpr(cls: type["MaxFprValidator"], value):
+        """
+        Validate the max_fpr parameter.
+
+        Args:
+            cls (MaxFprValidator): The class reference.
+            value: The max_fpr value.
+
+        Returns:
+            float | None: The validated max_fpr value.
+
+        Raises:
+            ValueError: If max_fpr is not in range (0, 1].
+        """
         if value is not None and (
             not isinstance(value, (int, float)) or not (0 < value <= 1)
         ):
@@ -192,7 +332,20 @@ class RocAucScoreConfig(
 ):
     @field_validator("average", mode="before")
     @classmethod
-    def override_average_options(cls, value):
+    def override_average_options(cls: type["RocAucScoreConfig"], value):
+        """
+        Override average options for RocAucScore.
+
+        Args:
+            cls (RocAucScoreConfig): The class reference.
+            value: The average method to use.
+
+        Returns:
+            str | None: The validated average method.
+
+        Raises:
+            ValueError: If average is not a valid option.
+        """
         allowed = {"micro", "macro", "samples", "weighted", None}
         if value not in allowed:
             raise ValueError(f"'average' must be one of {allowed}, got '{value}'")
@@ -204,7 +357,20 @@ class MultiOutputValidator(BaseModel):
 
     @field_validator("multioutput", mode="before")
     @classmethod
-    def check_multioutput(cls, value):
+    def check_multioutput(cls: type["MultiOutputValidator"], value):
+        """
+        Validate the multioutput parameter.
+
+        Args:
+            cls (MultiOutputValidator): The class reference.
+            value: The multioutput strategy.
+
+        Returns:
+            str: The validated multioutput strategy.
+
+        Raises:
+            ValueError: If multioutput is not a valid option.
+        """
         allowed = {"raw_values", "uniform_average", "variance_weighted"}
         if value not in allowed:
             raise ValueError(f"'multioutput' must be one of {allowed}, got '{value}'")
@@ -216,7 +382,20 @@ class ForceFiniteValidator(BaseModel):
 
     @field_validator("force_finite", mode="before")
     @classmethod
-    def check_force_finite(cls, value):
+    def check_force_finite(cls: type["ForceFiniteValidator"], value):
+        """
+        Validate the force_finite parameter.
+
+        Args:
+            cls (ForceFiniteValidator): The class reference.
+            value: The force_finite flag.
+
+        Returns:
+            bool: The validated force_finite flag.
+
+        Raises:
+            TypeError: If force_finite is not a boolean.
+        """
         if not isinstance(value, bool):
             raise TypeError(f"'force_finite' must be a boolean, got {type(value)}")
         return value

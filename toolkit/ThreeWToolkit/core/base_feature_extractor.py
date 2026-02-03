@@ -15,11 +15,12 @@ class OverlapOffsetMixin(BaseModel):
 
     @field_validator("overlap")
     @classmethod
-    def check_overlap_range(cls, overlap: float) -> float:
+    def check_overlap_range(cls: type["OverlapOffsetMixin"], overlap: float) -> float:
         """
         Validate that overlap is in the [0, 1) range.
 
         Args:
+            cls (OverlapOffsetMixin): The class reference.
             overlap (float): Overlap value to validate.
 
         Returns:
@@ -34,11 +35,12 @@ class OverlapOffsetMixin(BaseModel):
 
     @field_validator("offset")
     @classmethod
-    def check_offset_value(cls, offset: int) -> int:
+    def check_offset_value(cls: type["OverlapOffsetMixin"], offset: int) -> int:
         """
         Validate that offset is not negative.
 
         Args:
+            cls (OverlapOffsetMixin): The class reference.
             offset (int): Offset value to validate.
 
         Returns:
@@ -59,11 +61,12 @@ class EpsMixin(BaseModel):
 
     @field_validator("eps")
     @classmethod
-    def check_eps_value(cls, eps: float) -> float:
+    def check_eps_value(cls: type["EpsMixin"], eps: float) -> float:
         """
         Validate that epsilon is a small, positive number.
 
         Args:
+            cls (EpsMixin): The class reference.
             eps (float): Epsilon value to validate.
 
         Returns:
@@ -84,11 +87,12 @@ class WindowSizeMixin(BaseModel):
 
     @field_validator("window_size")
     @classmethod
-    def check_window_size(cls, window_size: int) -> int:
+    def check_window_size(cls: type["WindowSizeMixin"], window_size: int) -> int:
         """
         Validate that window_size is positive.
 
         Args:
+            cls (WindowSizeMixin): The class reference.
             window_size (int): Window size to validate.
 
         Returns:
@@ -137,6 +141,7 @@ class StatisticalConfig(
         Validate that selected features are available.
 
         Args:
+            cls (StatisticalConfig): The class reference.
             selected_features (list[str] | None): List of features selected for extraction.
 
         Returns:
@@ -180,11 +185,12 @@ class EWStatisticalConfig(
 
     @field_validator("decay")
     @classmethod
-    def check_decay_range(cls, decay: float) -> float:
+    def check_decay_range(cls: type["EWStatisticalConfig"], decay: float) -> float:
         """
         Validate that decay is in the (0, 1] range.
 
         Args:
+            cls (EWStatisticalConfig): The class reference.
             decay (float): Decay value to validate.
 
         Returns:
@@ -206,6 +212,7 @@ class EWStatisticalConfig(
         Validate that selected features are available.
 
         Args:
+            cls (EWStatisticalConfig): The class reference.
             selected_features (list[str] | None): List of features selected for extraction.
 
         Returns:
@@ -244,11 +251,12 @@ class WaveletConfig(OverlapOffsetMixin, FeatureSelectionMixin):
 
     @field_validator("level")
     @classmethod
-    def check_level_is_positive(cls, level: int) -> int:
+    def check_level_is_positive(cls: type["WaveletConfig"], level: int) -> int:
         """
         Validate that the wavelet level is a positive integer.
 
         Args:
+            cls (WaveletConfig): The class reference.
             level (int): Decomposition level to validate.
 
         Returns:
@@ -263,11 +271,12 @@ class WaveletConfig(OverlapOffsetMixin, FeatureSelectionMixin):
 
     @field_validator("wavelet")
     @classmethod
-    def check_wavelet_name(cls, wavelet: str) -> str:
+    def check_wavelet_name(cls: type["WaveletConfig"], wavelet: str) -> str:
         """
         Validate that the wavelet name is supported by AvailableWaveletsEnum.
 
         Args:
+            cls (WaveletConfig): The class reference.
             wavelet (str): Wavelet name to validate.
 
         Returns:

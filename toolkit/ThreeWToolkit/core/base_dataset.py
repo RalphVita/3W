@@ -73,6 +73,7 @@ class ParquetDatasetConfig(BaseModel):
         Ensure that `file_list` is only provided when `split=="list"`.
 
         Args:
+            cls (ParquetDatasetConfig): The class reference.
             file_list (list[str] | list[Path] | None): List of files to load.
             info (ValidationInfo): Validation info containing the split.
 
@@ -99,6 +100,7 @@ class ParquetDatasetConfig(BaseModel):
         Ensure that all event types are valid string values of EventPrefixEnum.
 
         Args:
+            cls (ParquetDatasetConfig): The class reference.
             event_type (list[EventPrefixEnum] | list[str] | None): List of event types.
 
         Returns:

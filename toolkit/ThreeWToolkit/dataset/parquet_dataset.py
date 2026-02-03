@@ -33,6 +33,15 @@ class ParquetDataset(
     """
 
     def __init__(self, config: ParquetDatasetConfig):
+        """
+        Initialize the ParquetDataset with the given configuration.
+
+        Args:
+            config (ParquetDatasetConfig): Configuration object for the dataset.
+
+        Raises:
+            ValueError: If dataset version or options are invalid.
+        """
         self.config = config
 
         # Check if dataset version is valid
@@ -159,9 +168,12 @@ class ParquetDataset(
             if self._check_event_type(e) and self._check_event_class(e)
         ]
 
-    def is_dataset_extracted_correctly(self):
+    def is_dataset_extracted_correctly(self) -> bool:
         """
         Check if the dataset is already extracted by checking the number of parquet files.
+
+        Returns:
+            bool: True if the number of extracted files matches the expectation, False otherwise.
         """
         extracted_files = list(Path(self.config.path).rglob("*.parquet"))
         total_expected_files = DATASET_VALIDATION_RULES[self.config.version][
@@ -244,6 +256,15 @@ class ParquetDataset(
     ) -> dict[str, pd.DataFrame | Path] | None:
         """
         Clean or preprocess data if required by configuration.
+
+        Args:
+            data: Input data dictionary containing file information.
+
+        Returns:
+            dict[str, pd.DataFrame | Path] | None: Processed data dictionary.
+
+        Raises:
+            ValueError: If file_name is invalid when clean_data is True.
         """
         if self.config.clean_data and data is not None:
             # NOTE: Currently assuming that the parent folder name corresponds to the target value
@@ -304,7 +325,8 @@ class ParquetDataset(
         self, data: dict[str, pd.DataFrame | Path] | None
     ) -> dict[str, pd.DataFrame | Path]:
         """
-        If you want to use the BaseStep flow (pre -> run -> post),
+        Finalize dataset processing.
+        f you want to use the BaseStep flow (pre -> run -> post),
         return the DataLoader here when `run` returns (X, y).
         Since `run` already returns a DataLoader-compatible object,
         this method currently acts as an identity function.

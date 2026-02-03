@@ -22,6 +22,7 @@ class ImputeMissingConfig(BaseModel):
         Validate that `fill_value` is provided when strategy is 'constant'.
 
         Args:
+            cls (ImputeMissingConfig): The class reference.
             fill_value (int | float | None): Value to fill missing data with.
             info (ValidationInfo): Validation info containing the strategy.
 
@@ -66,6 +67,7 @@ class WindowingConfig(BaseModel):
         Validate that the window configuration is correct.
 
         Args:
+            cls (WindowingConfig): The class reference.
             window (str | tuple): Window name or tuple of (name, parameter).
 
         Returns:
@@ -152,7 +154,7 @@ class RenameColumnsConfig(BaseModel):
         Validate that all columns to be renamed exist in the DataFrame.
 
         Args:
-            cls: The class reference.
+            cls (RenameColumnsConfig): The class reference.
             columns_map (dict[str, str]): Mapping of columns to rename.
             info: Validation info, containing the data attribute.
 
@@ -178,7 +180,7 @@ class RenameColumnsConfig(BaseModel):
         Validate that new column names are unique.
 
         Args:
-            cls: The class reference.
+            cls (RenameColumnsConfig): The class reference.
             columns_map (dict[str, str]): Mapping of columns to rename.
 
         Raises:

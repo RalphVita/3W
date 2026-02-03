@@ -16,6 +16,7 @@ class AssessmentVisualizationConfig(BaseModel):
         Validate that the provided class names are valid.
 
         Args:
+            cls (AssessmentVisualizationConfig): The class reference.
             class_names (list[str] | None): List of class names to validate.
 
         Returns:
