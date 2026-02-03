@@ -67,15 +67,45 @@ class ModelAssessmentConfig(BaseModel):
 
     @field_validator("task_type")
     @classmethod
-    def validate_task_type(cls, v):
+    def validate_task_type(
+        cls: type["ModelAssessmentConfig"], task_type: TaskTypeEnum
+    ) -> TaskTypeEnum:
+        """
+        Validate that the task type is supported.
+
+        Args:
+            cls (ModelAssessmentConfig): The class reference.
+            task_type (TaskTypeEnum): Task type to validate.
+
+        Returns:
+            TaskTypeEnum: Validated task type.
+
+        Raises:
+            ValueError: If task_type is not supported.
+        """
         valid_types = {TaskTypeEnum.CLASSIFICATION, TaskTypeEnum.REGRESSION}
-        if v not in valid_types:
+        if task_type not in valid_types:
             raise ValueError(f"task_type must be one of {valid_types}")
-        return v
+        return task_type
 
     @field_validator("metrics")
     @classmethod
-    def validate_metrics(cls, v):
+    def validate_metrics(
+        cls: type["ModelAssessmentConfig"], metrics: list[str]
+    ) -> list[str]:
+        """
+        Validate that the requested metrics are supported.
+
+        Args:
+            cls (ModelAssessmentConfig): The class reference.
+            metrics (list[str]): List of metric names.
+
+        Returns:
+            list[str]: Validated list of metrics.
+
+        Raises:
+            ValueError: If any metric is not supported.
+        """
         valid_metrics = {
             # Classification metrics
             "accuracy",
@@ -87,20 +117,33 @@ class ModelAssessmentConfig(BaseModel):
             # Regression metrics
             "explained_variance",
         }
-        invalid_metrics = set(v) - valid_metrics
+        invalid_metrics = set(metrics) - valid_metrics
         if invalid_metrics:
             raise ValueError(
                 f"Invalid metrics: {invalid_metrics}. Valid metrics: {valid_metrics}"
             )
-        return v
+        return metrics
 
     @field_validator("device")
     @classmethod
-    def validate_device(cls, v):
+    def validate_device(cls: type["ModelAssessmentConfig"], device: str) -> str:
+        """
+        Validate that the computation device is supported.
+
+        Args:
+            cls (ModelAssessmentConfig): The class reference.
+            device (str): Device name ('cpu' or 'cuda').
+
+        Returns:
+            str: Validated device name.
+
+        Raises:
+            ValueError: If device is not supported.
+        """
         valid_devices = {"cpu", "cuda"}
-        if v not in valid_devices:
+        if device not in valid_devices:
             raise ValueError(f"device must be one of {valid_devices}")
-        return v
+        return device
 
 
 class BaseModelAssessment(BaseStep):
