@@ -12,7 +12,9 @@ class ModelsConfig(BaseModel):
     @field_validator("model_type")
     @classmethod
     def check_model_type(
-        cls: type["ModelsConfig"], value: ModelTypeEnum | str | None, info: ValidationInfo
+        cls: type["ModelsConfig"],
+        value: ModelTypeEnum | str | None,
+        info: ValidationInfo,
     ) -> ModelTypeEnum | str:
         """Validate that model_type is supported.
 

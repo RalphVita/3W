@@ -1,7 +1,13 @@
 import numpy as np
 import pandas as pd
 
-from pydantic import BaseModel, ConfigDict, field_validator, model_validator, ValidationInfo
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    field_validator,
+    model_validator,
+    ValidationInfo,
+)
 
 
 class BaseScoreArgsValidator(BaseModel):
@@ -278,7 +284,9 @@ class MaxFprValidator(BaseModel):
 
     @field_validator("max_fpr", mode="before")
     @classmethod
-    def check_max_fpr(cls: type["MaxFprValidator"], value: float | None) -> float | None:
+    def check_max_fpr(
+        cls: type["MaxFprValidator"], value: float | None
+    ) -> float | None:
         """
         Validate the max_fpr parameter.
 
