@@ -326,7 +326,7 @@ class ParquetDataset(
     ) -> dict[str, pd.DataFrame | Path]:
         """
         Finalize dataset processing.
-        f you want to use the BaseStep flow (pre -> run -> post),
+        If you want to use the BaseStep flow (pre -> run -> post),
         return the DataLoader here when `run` returns (X, y).
         Since `run` already returns a DataLoader-compatible object,
         this method currently acts as an identity function.

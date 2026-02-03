@@ -7,7 +7,7 @@ import numpy as np
 from pathlib import Path
 from typing import Callable, Union
 from torch.utils.data import DataLoader
-from pydantic import field_validator
+from pydantic import field_validator, ValidationInfo
 
 from tqdm.auto import tqdm
 from sklearn.model_selection import StratifiedKFold, train_test_split
@@ -90,7 +90,7 @@ class TrainerConfig(ModelTrainerConfig):
 
     @field_validator("batch_size")
     @classmethod
-    def check_batch_size(cls: type["TrainerConfig"], value):
+    def check_batch_size(cls: type["TrainerConfig"], value: int) -> int:
         """Validate that batch_size is positive.
 
         Args:
@@ -109,7 +109,7 @@ class TrainerConfig(ModelTrainerConfig):
 
     @field_validator("epochs")
     @classmethod
-    def check_epochs(cls: type["TrainerConfig"], value):
+    def check_epochs(cls: type["TrainerConfig"], value: int) -> int:
         """Validate that epochs is positive.
 
         Args:
@@ -128,7 +128,7 @@ class TrainerConfig(ModelTrainerConfig):
 
     @field_validator("learning_rate")
     @classmethod
-    def check_learning_rate(cls: type["TrainerConfig"], value):
+    def check_learning_rate(cls: type["TrainerConfig"], value: float) -> float:
         """Validate that learning_rate is positive.
 
         Args:
@@ -147,32 +147,30 @@ class TrainerConfig(ModelTrainerConfig):
 
     @field_validator("n_splits")
     @classmethod
-    def check_n_splits(cls: type["TrainerConfig"], value, values):
+    def check_n_splits(
+        cls: type["TrainerConfig"], value: int | None, info: ValidationInfo
+    ) -> int | None:
         """Validate n_splits when cross-validation is enabled.
 
         Args:
             cls (TrainerConfig): The class reference.
-            value (int): The number of splits to validate.
-            values: The validation context containing other field values.
+            value (int | None): The number of splits to validate.
+            info (ValidationInfo): The validation context containing other field values.
 
         Returns:
-            int: The validated number of splits.
+            int | None: The validated number of splits.
 
         Raises:
             ValueError: If n_splits is not greater than 1 when cross_validation is True.
         """
-        cross_val = (
-            values.data.get("cross_validation")
-            if hasattr(values, "data")
-            else values.get("cross_validation")
-        )
+        cross_val = info.data.get("cross_validation")
         if cross_val and value is not None and value <= 1:
             raise ValueError("n_splits must be > 1 for cross-validation")
         return value
 
     @field_validator("optimizer")
     @classmethod
-    def check_optimizer(cls: type["TrainerConfig"], value):
+    def check_optimizer(cls: type["TrainerConfig"], value: str) -> str:
         """Validate that optimizer is from the supported list.
 
         Args:
@@ -192,7 +190,7 @@ class TrainerConfig(ModelTrainerConfig):
 
     @field_validator("criterion")
     @classmethod
-    def check_criterion(cls: type["TrainerConfig"], value):
+    def check_criterion(cls: type["TrainerConfig"], value: str) -> str:
         """Validate that criterion is from the supported list.
 
         Args:
@@ -212,7 +210,7 @@ class TrainerConfig(ModelTrainerConfig):
 
     @field_validator("device")
     @classmethod
-    def check_device(cls: type["TrainerConfig"], value):
+    def check_device(cls: type["TrainerConfig"], value: str) -> str:
         """Validate that device is either 'cpu' or 'cuda'.
 
         Args:

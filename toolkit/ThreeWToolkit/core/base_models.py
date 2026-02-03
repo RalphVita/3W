@@ -1,6 +1,6 @@
 from abc import ABC
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ValidationInfo
 
 from ..core.enums import ModelTypeEnum
 
@@ -11,13 +11,15 @@ class ModelsConfig(BaseModel):
 
     @field_validator("model_type")
     @classmethod
-    def check_model_type(cls: type["ModelsConfig"], value, info):
+    def check_model_type(
+        cls: type["ModelsConfig"], value: ModelTypeEnum | str | None, info: ValidationInfo
+    ) -> ModelTypeEnum | str:
         """Validate that model_type is supported.
 
         Args:
             cls (ModelsConfig): The class reference.
-            value (ModelTypeEnum | str): The model type to validate.
-            info: Validation info.
+            value (ModelTypeEnum | str | None): The model type to validate.
+            info (ValidationInfo): Validation info.
 
         Returns:
             ModelTypeEnum | str: Validated model type.

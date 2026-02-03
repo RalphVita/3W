@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from pydantic import BaseModel, ConfigDict, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator, ValidationInfo
 
 
 class BaseScoreArgsValidator(BaseModel):
@@ -13,17 +13,19 @@ class BaseScoreArgsValidator(BaseModel):
 
     @field_validator("y_true", "y_pred", "sample_weight", mode="before")
     @classmethod
-    def check_array_like(cls: type["BaseScoreArgsValidator"], value, info):
+    def check_array_like(
+        cls: type["BaseScoreArgsValidator"], value: object, info: ValidationInfo
+    ) -> object:
         """
         Validate that input fields are array-like.
 
         Args:
             cls (BaseScoreArgsValidator): The class reference.
-            value: The value to validate.
-            info: Validation information.
+            value (object): The value to validate.
+            info (ValidationInfo): Validation information.
 
         Returns:
-            The validated value.
+            object: The validated value.
 
         Raises:
             TypeError: If the value is not a numpy array, pandas Series, or list.
@@ -37,7 +39,7 @@ class BaseScoreArgsValidator(BaseModel):
         return value
 
     @model_validator(mode="after")
-    def check_shapes(self):
+    def check_shapes(self) -> "BaseScoreArgsValidator":
         """
         Validate that y_true, y_pred, and sample_weight have consistent lengths.
 
@@ -70,13 +72,13 @@ class LabelsValidator(BaseModel):
 
     @field_validator("labels", mode="before")
     @classmethod
-    def check_labels(cls: type["LabelsValidator"], value):
+    def check_labels(cls: type["LabelsValidator"], value: list | None) -> list | None:
         """
         Validate that labels are a list or None.
 
         Args:
             cls (LabelsValidator): The class reference.
-            value: The labels to validate.
+            value (list | None): The labels to validate.
 
         Returns:
             list | None: The validated labels.
@@ -94,13 +96,15 @@ class PosLabelValidator(BaseModel):
 
     @field_validator("pos_label", mode="before")
     @classmethod
-    def check_pos_label(cls: type["PosLabelValidator"], value):
+    def check_pos_label(
+        cls: type["PosLabelValidator"], value: int | float | None
+    ) -> int | float | None:
         """
         Validate that pos_label is a number or None.
 
         Args:
             cls (PosLabelValidator): The class reference.
-            value: The pos_label to validate.
+            value (int | float | None): The pos_label to validate.
 
         Returns:
             int | float | None: The validated pos_label.
@@ -118,13 +122,13 @@ class AverageValidator(BaseModel):
 
     @field_validator("average", mode="before")
     @classmethod
-    def check_average(cls: type["AverageValidator"], value):
+    def check_average(cls: type["AverageValidator"], value: str | None) -> str | None:
         """
         Validate the average parameter.
 
         Args:
             cls (AverageValidator): The class reference.
-            value: The average method to use.
+            value (str | None): The average method to use.
 
         Returns:
             str | None: The validated average method.
@@ -143,13 +147,15 @@ class ZeroDivisionValidator(BaseModel):
 
     @field_validator("zero_division", mode="before")
     @classmethod
-    def check_zero_division(cls: type["ZeroDivisionValidator"], value):
+    def check_zero_division(
+        cls: type["ZeroDivisionValidator"], value: str | int
+    ) -> str | int:
         """
         Validate the zero_division parameter.
 
         Args:
             cls (ZeroDivisionValidator): The class reference.
-            value: The zero_division handling strategy.
+            value (str | int): The zero_division handling strategy.
 
         Returns:
             str | int: The validated zero_division value.
@@ -168,13 +174,13 @@ class AccuracyScoreConfig(BaseScoreArgsValidator):
 
     @field_validator("normalize", mode="before")
     @classmethod
-    def check_bool(cls: type["AccuracyScoreConfig"], value):
+    def check_bool(cls: type["AccuracyScoreConfig"], value: bool) -> bool:
         """
         Validate boolean parameters.
 
         Args:
             cls (AccuracyScoreConfig): The class reference.
-            value: The value to validate.
+            value (bool): The value to validate.
 
         Returns:
             bool: The validated boolean value.
@@ -194,13 +200,13 @@ class BalancedAccuracyScoreConfig(BaseScoreArgsValidator):
 
     @field_validator("adjusted", mode="before")
     @classmethod
-    def check_bool(cls: type["BalancedAccuracyScoreConfig"], value):
+    def check_bool(cls: type["BalancedAccuracyScoreConfig"], value: bool) -> bool:
         """
         Validate boolean parameters.
 
         Args:
             cls (BalancedAccuracyScoreConfig): The class reference.
-            value: The value to validate.
+            value (bool): The value to validate.
 
         Returns:
             bool: The validated boolean value.
@@ -220,13 +226,15 @@ class AveragePrecisionScoreConfig(
 ):
     @field_validator("average", mode="before")
     @classmethod
-    def override_average_options(cls: type["AveragePrecisionScoreConfig"], value):
+    def override_average_options(
+        cls: type["AveragePrecisionScoreConfig"], value: str | None
+    ) -> str | None:
         """
         Override average options for AveragePrecisionScore.
 
         Args:
             cls (AveragePrecisionScoreConfig): The class reference.
-            value: The average method to use.
+            value (str | None): The average method to use.
 
         Returns:
             str | None: The validated average method.
@@ -245,13 +253,13 @@ class MultiClassValidator(BaseModel):
 
     @field_validator("multi_class", mode="before")
     @classmethod
-    def check_multi_class(cls: type["MultiClassValidator"], value):
+    def check_multi_class(cls: type["MultiClassValidator"], value: str) -> str:
         """
         Validate the multi_class parameter.
 
         Args:
             cls (MultiClassValidator): The class reference.
-            value: The multi_class strategy.
+            value (str): The multi_class strategy.
 
         Returns:
             str: The validated multi_class strategy.
@@ -270,13 +278,13 @@ class MaxFprValidator(BaseModel):
 
     @field_validator("max_fpr", mode="before")
     @classmethod
-    def check_max_fpr(cls: type["MaxFprValidator"], value):
+    def check_max_fpr(cls: type["MaxFprValidator"], value: float | None) -> float | None:
         """
         Validate the max_fpr parameter.
 
         Args:
             cls (MaxFprValidator): The class reference.
-            value: The max_fpr value.
+            value (float | None): The max_fpr value.
 
         Returns:
             float | None: The validated max_fpr value.
@@ -332,13 +340,15 @@ class RocAucScoreConfig(
 ):
     @field_validator("average", mode="before")
     @classmethod
-    def override_average_options(cls: type["RocAucScoreConfig"], value):
+    def override_average_options(
+        cls: type["RocAucScoreConfig"], value: str | None
+    ) -> str | None:
         """
         Override average options for RocAucScore.
 
         Args:
             cls (RocAucScoreConfig): The class reference.
-            value: The average method to use.
+            value (str | None): The average method to use.
 
         Returns:
             str | None: The validated average method.
@@ -357,13 +367,13 @@ class MultiOutputValidator(BaseModel):
 
     @field_validator("multioutput", mode="before")
     @classmethod
-    def check_multioutput(cls: type["MultiOutputValidator"], value):
+    def check_multioutput(cls: type["MultiOutputValidator"], value: str) -> str:
         """
         Validate the multioutput parameter.
 
         Args:
             cls (MultiOutputValidator): The class reference.
-            value: The multioutput strategy.
+            value (str): The multioutput strategy.
 
         Returns:
             str: The validated multioutput strategy.
@@ -382,13 +392,13 @@ class ForceFiniteValidator(BaseModel):
 
     @field_validator("force_finite", mode="before")
     @classmethod
-    def check_force_finite(cls: type["ForceFiniteValidator"], value):
+    def check_force_finite(cls: type["ForceFiniteValidator"], value: bool) -> bool:
         """
         Validate the force_finite parameter.
 
         Args:
             cls (ForceFiniteValidator): The class reference.
-            value: The force_finite flag.
+            value (bool): The force_finite flag.
 
         Returns:
             bool: The validated force_finite flag.
