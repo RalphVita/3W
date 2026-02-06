@@ -1,4 +1,3 @@
-import os
 import tempfile
 import pickle
 import pytest
@@ -7,6 +6,7 @@ import torch.nn as nn
 import sklearn.linear_model
 
 from io import BytesIO
+from pathlib import Path
 
 from ThreeWToolkit.utils import ModelRecorder
 
@@ -34,9 +34,9 @@ class TestModelRecorder:
         """
         with tempfile.NamedTemporaryFile(suffix=".pt", delete=False) as tmp:
             ModelRecorder.save_best_model(self.torch_model, tmp.name)
-            assert os.path.exists(tmp.name)
-            assert os.path.getsize(tmp.name) > 0
-        os.remove(tmp.name)
+            assert Path(tmp.name).exists()
+            assert Path(tmp.name).stat().st_size > 0
+        Path(tmp.name).unlink()
 
     def test_save_sklearn_model(self):
         """
@@ -44,11 +44,11 @@ class TestModelRecorder:
         """
         with tempfile.NamedTemporaryFile(suffix=".pkl", delete=False) as tmp:
             ModelRecorder.save_best_model(self.sklearn_model, tmp.name)
-            assert os.path.exists(tmp.name)
+            assert Path(tmp.name).exists()
             with open(tmp.name, "rb") as f:
                 loaded = pickle.load(f)
                 assert isinstance(loaded, sklearn.linear_model.LogisticRegression)
-        os.remove(tmp.name)
+        Path(tmp.name).unlink()
 
     def test_save_invalid_extension(self):
         """
@@ -93,7 +93,7 @@ class TestModelRecorder:
         with tempfile.NamedTemporaryFile(suffix=".pt", delete=False) as tmp:
             with pytest.raises(RuntimeError, match="Error saving PyTorch model"):
                 ModelRecorder.save_best_model(self.torch_model, tmp.name)
-        os.remove(tmp.name)
+        Path(tmp.name).unlink()
 
     def test_exception_inside_pickle_block(self, monkeypatch):
         """
@@ -108,4 +108,4 @@ class TestModelRecorder:
         with tempfile.NamedTemporaryFile(suffix=".pkl", delete=False) as tmp:
             with pytest.raises(RuntimeError, match="Error saving Pickle model"):
                 ModelRecorder.save_best_model(self.sklearn_model, tmp.name)
-        os.remove(tmp.name)
+        Path(tmp.name).unlink()

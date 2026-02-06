@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
+import pytest
 
 from ThreeWToolkit.data_visualization.plots import DataVisualization
 
@@ -53,21 +54,20 @@ class TestPlotMultipleSeries:
         assert isinstance(fig.gca(), Axes)
         plt.close(fig)
 
-    def test_plot_multiple_series_with_empty_list(self):
+    def test_plot_multiple_series_with_empty_list_raises_value_error(self):
         """
-        Test that empty series_list returns a figure without error.
+        Test that an empty series_list raises a ValueError.
         """
         fig, ax = plt.subplots()
-        fig, _ = DataVisualization.plot_multiple_series(
-            series_list=[],
-            labels=[],
-            title="Empty Series List",
-            xlabel="Date",
-            ylabel="Value",
-            ax=ax,
-        )
 
-        assert isinstance(fig, Figure)
-        assert isinstance(ax, Axes)
-        assert len(ax.lines) == 0
+        with pytest.raises(ValueError, match="series_list must not be empty"):
+            DataVisualization.plot_multiple_series(
+                series_list=[],
+                labels=[],
+                title="Empty Series List",
+                xlabel="Date",
+                ylabel="Value",
+                ax=ax,
+            )
+
         plt.close(fig)

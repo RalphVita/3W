@@ -4,7 +4,7 @@ import zipfile
 import pandas as pd
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from pandas import read_parquet
 
@@ -31,10 +31,8 @@ class ParquetDataset(BaseStep):
 
         # Check if dataset version is valid
         if self.config.version not in DATASET_VALIDATION_RULES:
-            raise ValueError(
-                f"Dataset version {self.config.version} is not valid. \
-                Supported versions are: {list(DATASET_VALIDATION_RULES.keys())}"
-            )
+            raise ValueError(f"Dataset version {self.config.version} is not valid. \
+                Supported versions are: {list(DATASET_VALIDATION_RULES.keys())}")
 
         # TODO: Implement dataset splitting for train, val, test
         if self.config.split not in [None, "list"]:
@@ -286,7 +284,7 @@ class ParquetDataset(BaseStep):
         """Return the number of events in the dataset."""
         return len(self.files_events)
 
-    def __getitem__(self, idx: int) -> Dict[str, Any]:
+    def __getitem__(self, idx: int) -> dict[str, Any]:
         """
         Load and process one dataset file.
 
@@ -294,12 +292,12 @@ class ParquetDataset(BaseStep):
             idx (int): Index of the file.
 
         Returns:
-            Dict[str, Any]: Dictionary containing signals, labels, and file name.
+            dict[str, Any]: Dictionary containing signals, labels, and file name.
         """
         data = self.load_data(idx)
         return self.__call__(data)
 
-    def load_data(self, idx: int) -> Dict[str, Any]:
+    def load_data(self, idx: int) -> dict[str, Any]:
         """
         Load a parquet file and separate signals and labels.
 
@@ -307,14 +305,14 @@ class ParquetDataset(BaseStep):
             idx (int): File index.
 
         Returns:
-            Dict[str, Any]:
+            dict[str, Any]:
                 - signal: DataFrame of input signals
                 - label: DataFrame of labels (if target_column is defined)
                 - file_name: Path to the file
         """
         file_name = self.files_events[idx]
         path = Path(self.config.path) / file_name
-        ret: Dict[str, Any] = {}
+        ret: dict[str, Any] = {}
 
         ret["signal"] = read_parquet(
             path, columns=self.config.columns, engine="pyarrow"

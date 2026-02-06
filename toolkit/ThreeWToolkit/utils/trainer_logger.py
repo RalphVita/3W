@@ -1,9 +1,8 @@
-import os
 import json
 import pickle
 import logging
 from datetime import datetime
-from typing import Dict, Any, Union, Optional
+from typing import Any
 from pathlib import Path
 
 
@@ -17,7 +16,7 @@ class TrainerLogger:
     SUPPORTED_FORMATS = {"json", "pickle"}
 
     # Class-level logger to avoid duplicate handlers
-    _logger: Optional[logging.Logger] = None
+    _logger: logging.Logger | None = None
 
     @classmethod
     def _get_logger(cls) -> logging.Logger:
@@ -37,8 +36,8 @@ class TrainerLogger:
     @classmethod
     def log_optimization_progress(
         cls,
-        progress_log: Dict[str, Any],
-        log_dir: Union[str, Path] = "logs",
+        progress_log: dict[str, Any],
+        log_dir: Path | str = "logs",
         file_format: str = "json",
     ) -> str:
         """
@@ -63,12 +62,13 @@ class TrainerLogger:
         if not progress_log:
             raise ValueError("progress_log must be a non-empty dictionary")
 
-        os.makedirs(log_dir, exist_ok=True)
+        log_dir_path = Path(log_dir)
+        log_dir_path.mkdir(parents=True, exist_ok=True)
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         extension = ".json" if file_format == "json" else ".pkl"
         filename = f"log_{timestamp}{extension}"
-        file_path = os.path.join(log_dir, filename)
+        file_path = log_dir_path / filename
 
         try:
             if file_format == "json":
@@ -83,4 +83,4 @@ class TrainerLogger:
             logger.error("Failed to save optimization progress: %s", e)
             raise
 
-        return file_path
+        return str(file_path)

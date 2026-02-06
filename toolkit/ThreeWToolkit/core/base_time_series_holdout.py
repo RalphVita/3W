@@ -1,6 +1,5 @@
 from abc import ABC
 from pydantic import BaseModel, ConfigDict
-from typing import Optional, Union
 import pandas as pd
 
 
@@ -9,18 +8,18 @@ class TimeSeriesHoldoutConfig(BaseModel):
     Configuration model for time series holdout splitting.
 
     Attributes:
-        test_size (Optional[float]): Proportion or count of test samples. Must be <= 1 if float.
-        train_size (Optional[float]): Proportion or count of train samples. Must be <= 1 if float.
-        random_state (Optional[int]): Seed for reproducibility.
+        test_size (float | None): Proportion or count of test samples. Must be <= 1 if float.
+        train_size (float | None): Proportion or count of train samples. Must be <= 1 if float.
+        random_state (int | None): Seed for reproducibility.
         shuffle (bool): Whether to shuffle data before splitting. Defaults to False.
-        stratify (Optional[Union[pd.Series, pd.DataFrame]]): Labels for stratification. Must be set only if shuffle is True.
+        stratify (pd.Series | pd.DataFrame | None): Labels for stratification. Must be set only if shuffle is True.
     """
 
-    test_size: Optional[float] = None
-    train_size: Optional[float] = None
-    random_state: Optional[int] = None
+    test_size: float | None = None
+    train_size: float | None = None
+    random_state: int | None = None
     shuffle: bool = False
-    stratify: Optional[Union[pd.Series, pd.DataFrame]] = None
+    stratify: pd.Series | pd.DataFrame | None = None
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
