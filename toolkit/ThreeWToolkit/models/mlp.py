@@ -6,13 +6,15 @@ from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 from ..core.base_models import ModelsConfig, BaseModels
 from ..core.enums import ModelTypeEnum, ActivationFunctionEnum
-from typing import Iterable, Any, TypeAlias, Union, Callable
+from typing import Iterable, Any, TypeAlias, Callable
 from pydantic import Field, field_validator
 
 # Type alias for PyTorch model parameters
-ParamsT: TypeAlias = Union[
-    Iterable[torch.Tensor], Iterable[dict[str, Any]], Iterable[tuple[str, torch.Tensor]]
-]
+ParamsT: TypeAlias = (
+    Iterable[torch.Tensor]
+    | Iterable[dict[str, Any]]
+    | Iterable[tuple[str, torch.Tensor]]
+)
 
 
 class MLPConfig(ModelsConfig):

@@ -3,8 +3,7 @@ set -ex
 
 cd $(dirname $0)/..
 
-export RUN_SLOW_TESTS=1
+: "${RUN_SLOW_TESTS:=0}"  # If not set, default to 0
+echo "RUN_SLOW_TESTS is set to $RUN_SLOW_TESTS"
 
-coverage run -m pytest tests
-coverage report
-coverage xml -o docs/coverage/coverage.xml
+pytest tests

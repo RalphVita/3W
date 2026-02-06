@@ -1,5 +1,5 @@
-import os
 import pandas as pd
+from pathlib import Path
 
 
 def load_csv(
@@ -10,14 +10,14 @@ def load_csv(
 
     Args:
         file_path (str): Path to the CSV file.
-        column_names (List[str]): List of column names to load.
-        date_column (List[str]): List of columns to be parsed as dates.
+        column_names (list[str]): List of column names to load.
+        date_column (list[str]): List of columns to be parsed as dates.
         parse_dates (bool): If True, parse the date columns.
 
     Returns:
         pd.DataFrame: The loaded DataFrame with selected columns.
     """
-    if not os.path.isfile(file_path):
+    if not Path(file_path).is_file():
         raise FileNotFoundError(f"The file '{file_path}' does not exist.")
 
     if not isinstance(column_names, list) or not all(

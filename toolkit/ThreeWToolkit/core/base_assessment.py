@@ -1,7 +1,6 @@
 import torch
 
 from pathlib import Path
-from typing import Optional
 from pydantic import BaseModel, Field, field_validator
 
 from ThreeWToolkit.constants import OUTPUT_DIR
@@ -60,7 +59,7 @@ class ModelAssessmentConfig(BaseModel):
         default="cuda" if torch.cuda.is_available() else "cpu",
         description="Device for PyTorch computations",
     )
-    report_title: Optional[str] = Field(
+    report_title: str | None = Field(
         default=None, description="Title for the generated report"
     )
     report_author: str = Field(

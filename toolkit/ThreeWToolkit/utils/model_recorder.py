@@ -1,11 +1,10 @@
-import os
 from pathlib import Path
 from typing import IO, Any
 
 
 class ModelRecorder:
     @staticmethod
-    def save_best_model(model: Any, filename: str | os.PathLike | IO[bytes]) -> None:
+    def save_best_model(model: Any, filename: str | Path | IO[bytes]) -> None:
         """
         Save a model to disk depending on its type and file extension.
         Supports PyTorch and scikit-learn (Pickle).
@@ -14,7 +13,7 @@ class ModelRecorder:
             model: Trained model object.
             filename: File name or file-like object where the model will be saved.
         """
-        if isinstance(filename, (str, os.PathLike)):
+        if isinstance(filename, (str, Path)):
             path = Path(filename)
             ext = path.suffix.lower()
         elif hasattr(filename, "write"):
@@ -49,16 +48,16 @@ class ModelRecorder:
             raise ValueError(f"Unsupported file extension: {ext}")
 
     @staticmethod
-    def load_model(filename: str | os.PathLike | IO[bytes], model: Any = None) -> Any:
+    def load_model(filename: str | Path | IO[bytes], model: Any = None) -> Any:
         """
         Load a model from disk depending on its type and file extension.
         Supports PyTorch (.pt, .pth) and scikit-learn/Pickle (.pkl, .pickle).
 
         Parameters:
-            filename (str | os.PathLike | IO[bytes]):  Path or file-like object pointing to the saved model file.
+            filename (str | Path | IO[bytes]):  Path or file-like object pointing to the saved model file.
             model (Any, optional):  An uninitialized model instance to load weights into. Required for PyTorch models.
         """
-        if isinstance(filename, (str, os.PathLike)):
+        if isinstance(filename, (str, Path)):
             path = Path(filename)
             ext = path.suffix.lower()
         elif hasattr(filename, "read"):

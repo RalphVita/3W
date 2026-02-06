@@ -6,7 +6,6 @@ from tqdm import tqdm
 from pathlib import Path
 
 from ..utils.general_utils import GeneralUtils
-from typing import List
 from pydantic import BaseModel, field_validator
 
 FIGSHARE_BASE_URL = "https://api.figshare.com/v2"
@@ -15,6 +14,14 @@ FIGSHARE_VERSION_IDS = {
     "1.1.0": "29205932",
     "1.1.1": "29205947",
     "2.0.0": "29205836",
+}
+
+# expected SHA256 digests for dataset versions
+FIGSHARE_VERSION_DIGESTS = {
+    "1.0.0": "34762c8d8077718f75024398996bbc57669f72234084b750f0bcaecfb7e85402",
+    "1.1.0": "a4d99b1783333f4ca7389e45e5bab0188aeb5c381a6439c8a3f634bd96ab9d82",
+    "1.1.1": "fed2af7c6f607b46d4963fe7eb7ee7ada7df3cfde0885f205a6408d0c2adff69",
+    "2.0.0": "c037a6a9d5dcc9b2add7b9ea413f5cff367c57bad3a93faac1d1d32da27fcbea",
 }
 
 
@@ -94,7 +101,7 @@ class GetFigshareDataValidator(BaseModel):
 @GeneralUtils.validate_func_args_with_pydantic(GetFigshareDataValidator)
 def get_figshare_data(
     path: Path, version: str = "2.0.0", chunk_size: int = 1024 * 1024
-) -> List[Path]:
+) -> list[Path]:
     """Download requested 3W dataset version from Figshare.
 
     Downloads all files associated with the specified dataset version from Figshare
@@ -110,7 +117,7 @@ def get_figshare_data(
             Defaults to 1MB (1024 * 1024).
 
     Returns:
-        List[Path]: List of paths to the downloaded files.
+        list[Path]: List of paths to the downloaded files.
 
     Raises:
         RuntimeError: If the target file already exists or if MD5 checksum
@@ -136,11 +143,9 @@ def get_figshare_data(
     downloaded = []
     for meta in metadata:  # iterate through multiple files if present
         # Stream download from Figshare
-        stream = requests.get(
-            FIGSHARE_BASE_URL + "/file/download/" + str(meta["id"]), stream=True
-        )
+        stream = requests.get(meta["download_url"], stream=True)
         stream_size = int(stream.headers.get("content-length", 0))
-        hasher = hashlib.md5()
+        hasher = hashlib.sha256()
         file_path = path / meta["name"]
 
         # Download with progress bar
@@ -157,10 +162,10 @@ def get_figshare_data(
                         pbar.update(len(chunk))
 
             # Verify file integrity
-            if hasher.hexdigest() != meta["supplied_md5"]:
+            if hasher.hexdigest() != FIGSHARE_VERSION_DIGESTS[version]:
                 raise RuntimeError(
                     f"Wrong checksum detected in {meta['name']}. "
-                    f"Expected {meta['supplied_md5']}, got {hasher.hexdigest()}."
+                    f"Expected {FIGSHARE_VERSION_DIGESTS[version]}, got {hasher.hexdigest()}."
                 )
         downloaded.append(file_path)
     return downloaded

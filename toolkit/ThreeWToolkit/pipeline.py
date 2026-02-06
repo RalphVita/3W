@@ -1,41 +1,36 @@
 import torch
 import logging
 import pandas as pd
-from typing import Any, Optional
+from typing import Any
 from pydantic import BaseModel
 
 from .models.mlp import MLP
 from tqdm.auto import tqdm
 
-from .assessment.model_assess import ModelAssessment
-from .core.base_assessment import ModelAssessmentConfig
-from .core.base_dataset import ParquetDatasetConfig
-from .core.base_preprocessing import (
-    ImputeMissingConfig,
-    NormalizeConfig,
-    RenameColumnsConfig,
-    WindowingConfig,
-)
+from .assessment import ModelAssessment, ModelAssessmentConfig
+
 from .core.base_step import BaseStep
-from .dataset.parquet_dataset import ParquetDataset
-from .feature_extraction.extract_exponential_statistics_features import (
+from .dataset import ParquetDataset, ParquetDatasetConfig
+
+from .feature_extraction import (
+    ExtractWaveletFeatures,
+    WaveletConfig,
+    ExtractStatisticalFeatures,
+    StatisticalConfig,
     EWStatisticalConfig,
     ExtractEWStatisticalFeatures,
 )
-from .feature_extraction.extract_statistical_features import (
-    ExtractStatisticalFeatures,
-    StatisticalConfig,
-)
-from .feature_extraction.extract_wavelet_features import (
-    ExtractWaveletFeatures,
-    WaveletConfig,
-)
 from .models.sklearn_models import SklearnModels
-from .preprocessing._data_processing import (
+
+from .preprocessing import (
     ImputeMissing,
+    ImputeMissingConfig,
     Normalize,
+    NormalizeConfig,
     RenameColumns,
+    RenameColumnsConfig,
     Windowing,
+    WindowingConfig,
 )
 from .trainer.trainer import ModelTrainer, TrainerConfig
 
@@ -52,11 +47,11 @@ class Pipeline:
     of processing steps.
 
     Attributes:
-        step_data_loader (Optional[ParquetDataset]): Data loading component
+        step_data_loader (ParquetDataset | None): Data loading component
         step_preprocessing (list[Any]): List of preprocessing steps
         step_feat_extraction (list[Any]): List of feature extraction steps
-        step_model_training (Optional[ModelTrainer]): Model training component
-        step_model_assessment (Optional[ModelAssessment]): Model assessment component
+        step_model_training (ModelTrainer | None): Model training component
+        step_model_assessment (ModelAssessment | None): Model assessment component
     """
 
     def __init__(self, configs: list[BaseModel]):
@@ -69,11 +64,11 @@ class Pipeline:
                                      extraction, training, assessment)
         """
         # Initialize class attributes
-        self.step_data_loader: Optional[ParquetDataset] = None
+        self.step_data_loader: ParquetDataset | None = None
         self.step_preprocessing: list[Any] = []
         self.step_feat_extraction: list[Any] = []
-        self.step_model_training: Optional[ModelTrainer] = None
-        self.step_model_assessment: Optional[ModelAssessment] = None
+        self.step_model_training: ModelTrainer | None = None
+        self.step_model_assessment: ModelAssessment | None = None
 
         self._factory_model(configs)
         self._validate_steps()
@@ -342,13 +337,17 @@ class Pipeline:
             pd.DataFrame: Processed batch ready for training
         """
         # Execute all preprocessing steps
-        batch_prep = batch
+        batch_prep: dict | pd.DataFrame = batch
 
         if self.step_preprocessing:
+            if not isinstance(batch_prep, dict):
+                raise TypeError("batch_prep must be a dict for preprocessing")
             batch_prep = self.run_step_preprocessing(batch_prep)
 
         # Execute feature extraction
         if self.step_feat_extraction:
+            if not isinstance(batch_prep, dict):
+                raise TypeError("batch_prep must be a dict for feature extraction")
             batch_prep = self.run_step_feature_extraction(batch_prep)
         else:
             if isinstance(batch_prep, dict):

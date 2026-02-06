@@ -1,4 +1,4 @@
-from typing import ClassVar, Optional
+from typing import ClassVar
 from pydantic import BaseModel, field_validator
 
 
@@ -56,7 +56,7 @@ class WindowSizeMixin(BaseModel):
 class FeatureSelectionMixin(BaseModel):
     """Mixin for feature selection."""
 
-    selected_features: Optional[list[str]] = None
+    selected_features: list[str] | None = None
 
 
 class StatisticalConfig(

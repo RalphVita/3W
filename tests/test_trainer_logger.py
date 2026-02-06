@@ -1,8 +1,8 @@
-import os
 import json
 import pickle
 import shutil
 from datetime import datetime
+from pathlib import Path
 
 import pytest
 
@@ -24,7 +24,7 @@ def sample_log():
 def temp_log_dir():
     """Create and clean up a temporary directory for log files."""
     log_dir = "temp_test_logs"
-    os.makedirs(log_dir, exist_ok=True)
+    Path(log_dir).mkdir(parents=True, exist_ok=True)
     yield log_dir
     shutil.rmtree(log_dir)
 
@@ -34,8 +34,8 @@ def test_log_json_format(sample_log, temp_log_dir):
     path = TrainerLogger.log_optimization_progress(
         sample_log, log_dir=temp_log_dir, file_format="json"
     )
-    assert os.path.exists(path)
-    assert path.endswith(".json")
+    assert Path(path).exists()
+    assert Path(path).suffix == ".json"
 
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -48,8 +48,8 @@ def test_log_pickle_format(sample_log, temp_log_dir):
     path = TrainerLogger.log_optimization_progress(
         sample_log, log_dir=temp_log_dir, file_format="pickle"
     )
-    assert os.path.exists(path)
-    assert path.endswith(".pkl")
+    assert Path(path).exists()
+    assert Path(path).suffix == ".pkl"
 
     with open(path, "rb") as f:
         data = pickle.load(f)

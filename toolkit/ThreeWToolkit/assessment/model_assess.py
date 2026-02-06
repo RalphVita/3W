@@ -2,7 +2,7 @@ import torch
 import numpy as np
 import pandas as pd
 
-from typing import Any, Callable, Union
+from typing import Any, Callable
 from torch.utils.data import DataLoader, TensorDataset
 
 from ..core.base_step import BaseStep
@@ -42,7 +42,7 @@ class ModelAssessment(BaseStep):
     Attributes:
         config (ModelAssessmentConfig): The assessment configuration.
         results (dict[str, Any]): Dictionary storing the latest evaluation results.
-        report_doc (Optional[Document]): Generated LaTeX report document.
+        report_doc (Document | None): Generated LaTeX report document.
         metric_functions (dict): Mapping of metric names to their calculation functions.
 
     Example:
@@ -251,9 +251,9 @@ class ModelAssessment(BaseStep):
 
     def evaluate(
         self,
-        model: Union[MLP, SklearnModels, Any],
-        X_test: Union[pd.DataFrame, np.ndarray],
-        y_test: Union[pd.DataFrame, pd.Series, np.ndarray],
+        model: MLP | SklearnModels | Any,
+        X_test: pd.DataFrame | np.ndarray,
+        y_test: pd.DataFrame | pd.Series | np.ndarray,
         **kwargs,
     ) -> dict[str, Any]:
         """Evaluate model performance on test data with comprehensive metrics.
@@ -263,12 +263,12 @@ class ModelAssessment(BaseStep):
         generation and export.
 
         Args:
-            model (Union[MLP, SklearnModels, Any]): Trained model instance.
+            model (MLP | SklearnModels | Any): Trained model instance.
                 Can be a PyTorch MLP, SklearnModels wrapper, or any sklearn-
                 compatible model with a predict method.
-            X_test (Union[pd.DataFrame, np.ndarray]): Test input features.
+            X_test (pd.DataFrame | np.ndarray): Test input features.
                 Will be automatically converted to numpy array for processing.
-            y_test (Union[pd.DataFrame, pd.Series, np.ndarray]): Test target
+            y_test (pd.DataFrame | pd.Series | np.ndarray): Test target
                 values. Will be flattened and converted to numpy array.
             **kwargs: Additional keyword arguments passed to the model's
                 predict method.
@@ -338,7 +338,7 @@ class ModelAssessment(BaseStep):
         return self.results
 
     def _get_predictions(
-        self, model: Union[MLP, SklearnModels, Any], X_test: np.ndarray, **kwargs
+        self, model: MLP | SklearnModels | Any, X_test: np.ndarray, **kwargs
     ) -> np.ndarray:
         """Generate predictions from model with proper handling for different types.
 
@@ -346,7 +346,7 @@ class ModelAssessment(BaseStep):
         the model type, handling the different interfaces transparently.
 
         Args:
-            model (Union[MLP, SklearnModels, Any]): Trained model instance.
+            model (MLP | SklearnModels | Any): Trained model instance.
             X_test (np.ndarray): Test features as numpy array.
             **kwargs: Additional arguments passed to the prediction method.
 
@@ -453,14 +453,14 @@ class ModelAssessment(BaseStep):
             return model.__class__.__name__
         return "Unknown_Model"
 
-    def _to_numpy(self, data: Union[pd.DataFrame, pd.Series, np.ndarray]) -> np.ndarray:
+    def _to_numpy(self, data: pd.DataFrame | pd.Series | np.ndarray) -> np.ndarray:
         """Convert various data types to numpy array format.
 
         Handles pandas DataFrames/Series and numpy arrays uniformly,
         ensuring consistent data format for all downstream processing.
 
         Args:
-            data (Union[pd.DataFrame, pd.Series, np.ndarray]): Input data
+            data (pd.DataFrame | pd.Series | np.ndarray): Input data
                 in various supported formats.
 
         Returns:
@@ -472,7 +472,7 @@ class ModelAssessment(BaseStep):
             - Falls back to np.array() for other array-like objects
         """
         if isinstance(data, (pd.DataFrame, pd.Series)):
-            return data.values
+            return np.asarray(data.values)
         elif isinstance(data, np.ndarray):
             return data
         else:

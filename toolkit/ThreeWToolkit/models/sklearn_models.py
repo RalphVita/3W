@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from typing import Dict, Any, Callable, Iterable
+from typing import Any, Callable, Iterable
 from pydantic import Field
 
 from sklearn.linear_model import LogisticRegression
@@ -16,7 +16,6 @@ from ..core.base_models import BaseModels, ModelsConfig
 from ..core.enums import ModelTypeEnum
 from ..utils.model_recorder import ModelRecorder
 from ..metrics import _classification
-
 
 # Dictionary to map the enum to the scikit-learn classes
 SKLEARN_MODELS = {
@@ -33,7 +32,7 @@ SKLEARN_MODELS = {
 class SklearnModelsConfig(ModelsConfig):
     """Configuration that extends the base ModelsConfig for scikit-learn models."""
 
-    model_params: Dict[str, Any] = Field(
+    model_params: dict[str, Any] = Field(
         default_factory=dict, description="Hyperparameters for the scikit-learn model."
     )
 

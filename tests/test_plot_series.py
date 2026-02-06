@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.axes import Axes
+import pytest
 
 from ThreeWToolkit.data_visualization import DataVisualization
 
@@ -91,20 +92,32 @@ class TestPlotSeries:
 
     def test_plot_series_with_empty_series(self):
         """
-        Test that an empty series still returns a figure.
+        Test that an empty series raises a ValueError.
         """
         empty_series = pd.Series(dtype=float)
 
-        fig, ax = plt.subplots()
-        fig, _ = DataVisualization.plot_series(
-            series=empty_series,
-            title="Empty Series",
-            xlabel="Date",
-            ylabel="Value",
-            overlay_events=False,
-            ax=ax,
+        with pytest.raises(ValueError):
+            DataVisualization.plot_series(
+                series=empty_series,
+                title="Empty Series",
+                xlabel="Date",
+                ylabel="Value",
+                overlay_events=False,
+            )
+
+    def test_plot_series_with_all_nan(self):
+        """
+        Test that a series with only NaN values raises a ValueError.
+        """
+        nan_series = pd.Series(
+            [np.nan, np.nan, np.nan], index=pd.date_range("2024-01-01", periods=3)
         )
 
-        assert isinstance(fig, Figure)
-        assert isinstance(ax, Axes)
-        plt.close(fig)
+        with pytest.raises(ValueError):
+            DataVisualization.plot_series(
+                series=nan_series,
+                title="Only NaN",
+                xlabel="Date",
+                ylabel="Value",
+                overlay_events=True,
+            )
