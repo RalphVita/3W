@@ -75,7 +75,7 @@ class TestModelRecorder:
         """
         fake_file = BytesIO()
         with pytest.raises(
-            ValueError,
+            TypeError,
             match=f"Saving to file-like object '{fake_file}' is not supported. Please provide a valid file path.",
         ):
             ModelRecorder.save_best_model(self.sklearn_model, fake_file)

@@ -146,7 +146,7 @@ class TestModelRecorderLoad:
         """
         fake_file = BytesIO()
         with pytest.raises(
-            ValueError,
+            TypeError,
             match=f"Loading from file-like object '{fake_file}' is not supported. Please provide a valid file path.",
         ):
             ModelRecorder.load_model(fake_file)
