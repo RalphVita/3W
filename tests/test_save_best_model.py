@@ -65,7 +65,7 @@ class TestModelRecorder:
         filename = 12345
         with pytest.raises(
             TypeError,
-            match=f"Invalid filename: `{filename}`. Expected a string, path-like object, or file-like object.",
+            match=f"Invalid filename: `{filename}`. Expected a string or path-like object.",
         ):
             ModelRecorder.save_best_model(self.sklearn_model, filename)
 
@@ -76,7 +76,7 @@ class TestModelRecorder:
         fake_file = BytesIO()
         with pytest.raises(
             TypeError,
-            match=f"Saving to file-like object '{fake_file}' is not supported. Please provide a valid file path.",
+            match=f"Invalid filename: `{fake_file}`. Expected a string or path-like object.",
         ):
             ModelRecorder.save_best_model(self.sklearn_model, fake_file)
 

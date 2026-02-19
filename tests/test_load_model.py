@@ -136,7 +136,7 @@ class TestModelRecorderLoad:
         filename = 98765
         with pytest.raises(
             TypeError,
-            match=f"Invalid filename: `{filename}`. Expected a string, path-like object, or file-like object.",
+            match=f"Invalid filename: `{filename}`. Expected a string or path-like object.",
         ):
             ModelRecorder.load_model(filename)
 
@@ -147,7 +147,7 @@ class TestModelRecorderLoad:
         fake_file = BytesIO()
         with pytest.raises(
             TypeError,
-            match=f"Loading from file-like object '{fake_file}' is not supported. Please provide a valid file path.",
+            match=f"Invalid filename: `{fake_file}`. Expected a string or path-like object.",
         ):
             ModelRecorder.load_model(fake_file)
 
