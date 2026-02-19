@@ -18,7 +18,7 @@ class ModelRecorder:
             ext = path.suffix.lower()
         else:
             raise TypeError(
-                f"Invalid filename: `{filename}`. Expected a string, path-like object, or file-like object."
+                f"Invalid filename: `{filename}`. Expected a string or path-like object."
             )
 
         # PyTorch
@@ -58,7 +58,7 @@ class ModelRecorder:
             ext = path.suffix.lower()
         else:
             raise TypeError(
-                f"Invalid filename: `{filename}`. Expected a string, path-like object, or file-like object."
+                f"Invalid filename: `{filename}`. Expected a string or path-like object."
             )
 
         # PyTorch
