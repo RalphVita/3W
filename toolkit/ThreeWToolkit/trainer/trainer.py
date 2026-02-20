@@ -749,7 +749,7 @@ class ModelTrainer(BaseStep):
             For PyTorch models, this loads the state dict. For scikit-learn
             models, this loads the entire model state.
         """
-        state_dict = ModelRecorder.load_model(filename=filepath, model = self.model)
+        state_dict = ModelRecorder.load_model(filename=filepath)
         if isinstance(self.model, MLP):
             self.model.load_state_dict(state_dict)
         return self.model
