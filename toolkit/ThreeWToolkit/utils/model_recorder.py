@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Any
 from torch.nn import Module
 from sklearn.base import BaseEstimator
 
@@ -48,7 +47,7 @@ class ModelRecorder:
     @staticmethod
     def load_model(
         filename: str | Path, model: Module | None = None
-        ) -> Module | dict | BaseEstimator:
+    ) -> Module | dict | BaseEstimator:
         """
         Load a model from disk depending on its type and file extension.
         Supports PyTorch (.pt, .pth) and scikit-learn/Pickle (.pkl, .pickle).
