@@ -3,6 +3,7 @@ from typing import Any
 from torch.nn import Module
 from sklearn.base import BaseEstimator
 
+
 class ModelRecorder:
     @staticmethod
     def save_best_model(model: Module | BaseEstimator, filename: str | Path) -> None:
@@ -45,7 +46,9 @@ class ModelRecorder:
             raise ValueError(f"Unsupported file extension: {ext}")
 
     @staticmethod
-    def load_model(filename: str | Path, model: Module | None = None) -> Module | dict | BaseEstimator:
+    def load_model(
+        filename: str | Path, model: Module | None = None
+        ) -> Module | dict | BaseEstimator:
         """
         Load a model from disk depending on its type and file extension.
         Supports PyTorch (.pt, .pth) and scikit-learn/Pickle (.pkl, .pickle).
