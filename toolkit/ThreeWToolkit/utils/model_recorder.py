@@ -1,11 +1,16 @@
+from __future__ import annotations
+
 from pathlib import Path
-from torch.nn import Module
-from sklearn.base import BaseEstimator
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..models.mlp import MLP
+    from ..models.sklearn_models import SklearnModels
 
 
 class ModelRecorder:
     @staticmethod
-    def save_best_model(model: Module | BaseEstimator, filename: str | Path) -> None:
+    def save_best_model(model: MLP | SklearnModels, filename: str | Path) -> None:
         """
         Save a model to disk depending on its type and file extension.
         Supports PyTorch and scikit-learn (Pickle).
@@ -27,7 +32,7 @@ class ModelRecorder:
             try:
                 import torch
 
-                torch.save(model.state_dict(), filename)
+                torch.save(model.state_dict(), filename)  # type: ignore[union-attr]
             except Exception as e:
                 raise RuntimeError(f"Error saving PyTorch model: {e}")
 
@@ -46,15 +51,15 @@ class ModelRecorder:
 
     @staticmethod
     def load_model(
-        filename: str | Path, model: Module | BaseEstimator | None = None
-    ) -> Module | dict | BaseEstimator:
+        filename: str | Path, model: MLP | SklearnModels | None = None
+    ) -> MLP | SklearnModels:
         """
         Load a model from disk depending on its type and file extension.
         Supports PyTorch (.pt, .pth) and scikit-learn/Pickle (.pkl, .pickle).
 
         Parameters:
             filename (str | Path):  Path pointing to the saved model file.
-            model (Module, optional):  An uninitialized model instance to load weights into. Required for PyTorch models.
+            model (MLP | SklearnModels, optional):  An uninitialized model instance to load weights into. Required for PyTorch models.
         """
         if isinstance(filename, (str, Path)):
             path = Path(filename)
@@ -70,10 +75,9 @@ class ModelRecorder:
                 import torch
 
                 if model is None:
-                    # Returns only the state_dict in case it does not have the model
                     return torch.load(filename)
                 state_dict = torch.load(filename)
-                model.load_state_dict(state_dict)
+                model.load_state_dict(state_dict)  # type: ignore[union-attr]
                 return model
             except Exception as e:
                 raise RuntimeError(f"Error loading PyTorch model: {e}")
