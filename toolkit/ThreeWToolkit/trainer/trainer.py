@@ -18,6 +18,7 @@ from ..models.mlp import MLPConfig, MLP
 from ..models.sklearn_models import SklearnModelsConfig, SklearnModels
 from ..utils import ModelRecorder
 from torch.utils.data import TensorDataset
+from torch.nn import Module
 from ..assessment.model_assess import ModelAssessment, ModelAssessmentConfig
 
 
@@ -732,7 +733,7 @@ class ModelTrainer(BaseStep):
         """
         ModelRecorder.save_best_model(model=self.model, filename=filepath)
 
-    def load(self, filepath: Path) -> MLP | SklearnModels:
+    def load(self, filepath: Path) -> Module | None:
         """Load a previously saved model from disk.
 
         Loads model weights/parameters from the specified file and applies
@@ -743,7 +744,7 @@ class ModelTrainer(BaseStep):
                 Should contain a model saved with the save() method.
 
         Returns:
-            MLP | SklearnModels: The model instance with loaded weights/parameters.
+            Module | None: The model instance with loaded weights/parameters.
 
         Note:
             For PyTorch models, this loads the state dict. For scikit-learn
