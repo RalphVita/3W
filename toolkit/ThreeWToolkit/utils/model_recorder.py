@@ -1,10 +1,11 @@
 from pathlib import Path
 from typing import Any
-
+from torch.nn import Module
+from sklearn.base import BaseEstimator
 
 class ModelRecorder:
     @staticmethod
-    def save_best_model(model: Any, filename: str | Path) -> None:
+    def save_best_model(model: Module | BaseEstimator, filename: str | Path) -> None:
         """
         Save a model to disk depending on its type and file extension.
         Supports PyTorch and scikit-learn (Pickle).
@@ -44,14 +45,14 @@ class ModelRecorder:
             raise ValueError(f"Unsupported file extension: {ext}")
 
     @staticmethod
-    def load_model(filename: str | Path, model: Any = None) -> Any:
+    def load_model(filename: str | Path, model: Module | None = None) -> Module | dict | BaseEstimator:
         """
         Load a model from disk depending on its type and file extension.
         Supports PyTorch (.pt, .pth) and scikit-learn/Pickle (.pkl, .pickle).
 
         Parameters:
             filename (str | Path):  Path pointing to the saved model file.
-            model (Any, optional):  An uninitialized model instance to load weights into. Required for PyTorch models.
+            model (Module, optional):  An uninitialized model instance to load weights into. Required for PyTorch models.
         """
         if isinstance(filename, (str, Path)):
             path = Path(filename)
