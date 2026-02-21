@@ -1,31 +1,42 @@
 from abc import ABC
-from pydantic import BaseModel, Field, field_validator
+
+from pydantic import BaseModel, Field, field_validator, ValidationInfo
 
 from ..core.enums import ModelTypeEnum
 
 
 class ModelsConfig(BaseModel):
-    model_type: ModelTypeEnum = Field(..., description="Type of model to use.")
+    model_type: ModelTypeEnum | str = Field(..., description="Type of model to use.")
     random_seed: int | None = Field(42, description="Random seed for reproducibility.")
 
     @field_validator("model_type")
     @classmethod
-    def check_model_type(cls, v, info):
-        if v not in {
-            ModelTypeEnum.MLP,
-            ModelTypeEnum.LOGISTIC_REGRESSION,
-            ModelTypeEnum.RANDOM_FOREST,
-            ModelTypeEnum.DECISION_TREE,
-            ModelTypeEnum.GRADIENT_BOOSTING,
-            ModelTypeEnum.KNN,
-            ModelTypeEnum.NAIVE_BAYES,
-            ModelTypeEnum.SVM,
-        }:
-            raise NotImplementedError("model_type not implemented yet.")
-        elif v is None:
-            raise ValueError("model_type is required.")
+    def check_model_type(
+        cls: type["ModelsConfig"],
+        value: ModelTypeEnum | str | None,
+        info: ValidationInfo,
+    ) -> ModelTypeEnum | str:
+        """Validate that model_type is supported.
 
-        return v
+        Args:
+            cls (ModelsConfig): The class reference.
+            value (ModelTypeEnum | str | None): The model type to validate.
+            info (ValidationInfo): Validation info.
+
+        Returns:
+            ModelTypeEnum | str: Validated model type.
+
+        Raises:
+            ValueError: If model_type is missing.
+            NotImplementedError: If model_type is not supported.
+        """
+        valid_types = {e for e in ModelTypeEnum}
+        valid_strs = {e.value for e in ModelTypeEnum}
+        if value is None:
+            raise ValueError("model_type is required.")
+        if value not in valid_types and value not in valid_strs:
+            raise NotImplementedError(f"`model_type` {value} not implemented yet.")
+        return value
 
 
 class BaseModels(ABC):

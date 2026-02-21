@@ -6,13 +6,13 @@ from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 from ..core.base_models import ModelsConfig, BaseModels
 from ..core.enums import ModelTypeEnum, ActivationFunctionEnum
-from typing import Iterable, Any, TypeAlias, Callable
+from typing import Iterable, TypeAlias, Callable
 from pydantic import Field, field_validator
 
 # Type alias for PyTorch model parameters
 ParamsT: TypeAlias = (
     Iterable[torch.Tensor]
-    | Iterable[dict[str, Any]]
+    | Iterable[dict[str, torch.Tensor | int | float | str | bool]]
     | Iterable[tuple[str, torch.Tensor]]
 )
 
@@ -104,11 +104,12 @@ class MLPConfig(ModelsConfig):
 
     @field_validator("input_size")
     @classmethod
-    def check_input_size(cls, v):
+    def check_input_size(cls: type["MLPConfig"], input_size: int | None):
         """Validate that `input_size` is positive if specified.
 
         Args:
-            v (int | None): The input size to validate.
+            cls (MLPConfig): The class reference.
+            input_size (int | None): The input size to validate.
 
         Returns:
             int | None: The validated input size.
@@ -116,17 +117,18 @@ class MLPConfig(ModelsConfig):
         Raises:
             ValueError: If `input_size` is specified but not positive.
         """
-        if v is not None and v <= 0:
+        if input_size is not None and input_size <= 0:
             raise ValueError("`input_size` must be > 0 when specified")
-        return v
+        return input_size
 
     @field_validator("activation_function")
     @classmethod
-    def check_activation_function(cls, v):
+    def check_activation_function(cls: type["MLPConfig"], activation_function: str):
         """Validate that the activation function is supported.
 
         Args:
-            v (str): The activation function name to validate.
+            cls (MLPConfig): The class reference.
+            activation_function (str): The activation function name to validate.
 
         Returns:
             str: The validated activation function name.
@@ -139,17 +141,18 @@ class MLPConfig(ModelsConfig):
             ActivationFunctionEnum.SIGMOID.value,
             ActivationFunctionEnum.TANH.value,
         }
-        if v not in valid:
+        if activation_function not in valid:
             raise ValueError(f"activation_function must be one of {valid}")
-        return v
+        return activation_function
 
     @field_validator("hidden_sizes")
     @classmethod
-    def check_hidden_sizes(cls, v):
+    def check_hidden_sizes(cls: type["MLPConfig"], hidden_sizes: tuple):
         """Validate that hidden sizes are positive integers.
 
         Args:
-            v (tuple): The hidden layer sizes to validate.
+            cls (MLPConfig): The class reference.
+            hidden_sizes (tuple): The hidden layer sizes to validate.
 
         Returns:
             tuple: The validated hidden layer sizes.
@@ -157,9 +160,11 @@ class MLPConfig(ModelsConfig):
         Raises:
             ValueError: If any hidden size is not a positive integer.
         """
-        if not v or not all(isinstance(h, int) and h > 0 for h in v):
+        if not hidden_sizes or not all(
+            isinstance(h, int) and h > 0 for h in hidden_sizes
+        ):
             raise ValueError("hidden_sizes must be a tuple of positive integers")
-        return v
+        return hidden_sizes
 
     def is_input_size_dynamic(self) -> bool:
         """Check if input size will be inferred dynamically.
@@ -463,7 +468,7 @@ class MLP(BaseModels, nn.Module):
         criterion: Callable,
         val_loader: DataLoader | None = None,
         device: str = "cuda" if torch.cuda.is_available() else "cpu",
-    ) -> dict[str, list[Any]]:
+    ) -> dict[str, list[float]]:
         """Train the MLP model with the provided data and configuration.
 
         Executes the complete training process including forward/backward passes,
@@ -487,7 +492,7 @@ class MLP(BaseModels, nn.Module):
                 Defaults to 'cuda' if available, otherwise 'cpu'.
 
         Returns:
-            dict[str, list[Any]]: Training history dictionary containing:
+            dict[str, list[float]]: Training history dictionary containing:
                 - 'train_loss': List of average training losses per epoch
                 - 'val_loss': List of validation losses per epoch (if val_loader provided)
 
@@ -537,7 +542,7 @@ class MLP(BaseModels, nn.Module):
         self.model.to(device)
 
         # Initialize loss tracking dictionary
-        loss_dict: dict[str, list[Any]] = {"train_loss": []}
+        loss_dict: dict[str, list[float]] = {"train_loss": []}
 
         # Add validation loss tracking if validation data provided
         if val_loader is not None:
@@ -665,7 +670,7 @@ class MLP(BaseModels, nn.Module):
             raise ValueError("Model should be built before prediction")
 
         self.model.eval()  # Set model to evaluation mode
-        y_pred: list[Any] = []
+        y_pred: list[int | float] = []
 
         # Disable gradient computation for efficiency
         with torch.no_grad():

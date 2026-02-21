@@ -43,11 +43,12 @@ class GetFigshareDataValidator(BaseModel):
 
     @field_validator("path")
     @classmethod
-    def validate_path(cls, v: Path) -> Path:
+    def validate_path(cls: type["GetFigshareDataValidator"], path: Path) -> Path:
         """Validate that the path exists and is a directory.
 
         Args:
-            v (Path): Path to validate.
+            cls (GetFigshareDataValidator): The class reference.
+            path (Path): Path to validate.
 
         Returns:
             Path: The validated path.
@@ -55,19 +56,20 @@ class GetFigshareDataValidator(BaseModel):
         Raises:
             RuntimeError: If path doesn't exist or is not a directory.
         """
-        if not v.exists():
+        if not path.exists():
             raise RuntimeError("Provided path must exist.")
-        if not v.is_dir():
+        if not path.is_dir():
             raise RuntimeError("Provided path must be a directory.")
-        return v
+        return path
 
     @field_validator("version")
     @classmethod
-    def validate_version(cls, v: str) -> str:
+    def validate_version(cls: type["GetFigshareDataValidator"], version: str) -> str:
         """Validate that the version is supported.
 
         Args:
-            v (str): Version string to validate.
+            cls (GetFigshareDataValidator): The class reference.
+            version (str): Version string to validate.
 
         Returns:
             str: The validated version string.
@@ -75,17 +77,20 @@ class GetFigshareDataValidator(BaseModel):
         Raises:
             ValueError: If version is not in FIGSHARE_VERSION_IDS.
         """
-        if v not in FIGSHARE_VERSION_IDS:
-            raise ValueError(f"Unknown dataset version: {v}.")
-        return v
+        if version not in FIGSHARE_VERSION_IDS:
+            raise ValueError(f"Unknown dataset version: {version}.")
+        return version
 
     @field_validator("chunk_size")
     @classmethod
-    def validate_chunk_size(cls, v: int) -> int:
+    def validate_chunk_size(
+        cls: type["GetFigshareDataValidator"], chunk_size: int
+    ) -> int:
         """Validate that chunk size is positive.
 
         Args:
-            v (int): Chunk size to validate.
+            cls (GetFigshareDataValidator): The class reference.
+            chunk_size (int): Chunk size to validate.
 
         Returns:
             int: The validated chunk size.
@@ -93,9 +98,9 @@ class GetFigshareDataValidator(BaseModel):
         Raises:
             ValueError: If chunk size is not greater than zero.
         """
-        if v <= 0:
+        if chunk_size <= 0:
             raise ValueError("Chunk size must be greater than zero.")
-        return v
+        return chunk_size
 
 
 @GeneralUtils.validate_func_args_with_pydantic(GetFigshareDataValidator)
