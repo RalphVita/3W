@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 
 from .base_visualizer import BaseVisualizer
 
@@ -37,13 +38,9 @@ class PlotMultipleSeries(BaseVisualizer):
             **plot_kwargs: Additional keyword arguments forwarded to
                 matplotlib Axes.plot.
 
-        Returns:
-            None.
-
         Raises:
             ValueError: If series_list is empty.
             ValueError: If series_list and labels have different lengths.
-            TypeError: If series_list or labels are not valid lists.
         """
         if not series_list:
             raise ValueError("series_list must not be empty")
@@ -69,12 +66,11 @@ class PlotMultipleSeries(BaseVisualizer):
             A tuple containing:
                 - fig: The matplotlib Figure object.
                 - ax: The matplotlib Axes with the rendered time series.
-
-        Raises:
-            None.
         """
         if ax is None:
-            fig, ax = plt.subplots(figsize=(12, 6))
+            fig = Figure(figsize=(12, 6))
+            FigureCanvas(fig)
+            ax = fig.add_subplot(1, 1, 1)
         else:
             fig = cast(Figure, ax.get_figure())
 
@@ -90,8 +86,8 @@ class PlotMultipleSeries(BaseVisualizer):
                 continue
 
             ax.plot(
-                series.index,
-                series.values,
+                clean_series.index,
+                clean_series.values,
                 label=label,
                 color=colors[i],
                 **self.plot_kwargs,
