@@ -47,3 +47,16 @@ class CriterionEnum(Enum):
     BINARY_CROSS_ENTROPY = "binary_cross_entropy"
     MSE = "mse"
     MAE = "mae"
+
+
+class DistanceMetricEnum(str, Enum):
+    DTW = "dtw"
+    DTW_BARYCENTER = "dtw-barycenter"
+    EUCLIDEAN = "euclidean"
+
+
+class LinkageMethodEnum(str, Enum):
+    AVERAGE = "average"
+    COMPLETE = "complete"
+    SINGLE = "single"
+    WARD = "ward"
