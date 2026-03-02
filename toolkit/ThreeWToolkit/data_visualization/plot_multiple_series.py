@@ -38,10 +38,20 @@ class PlotMultipleSeries(BaseVisualizer):
             **plot_kwargs: Additional keyword arguments forwarded to
                 matplotlib Axes.plot.
 
+        Returns:
+            None.
+
         Raises:
+            TypeError: If series_list or labels are not valid lists.
             ValueError: If series_list is empty.
             ValueError: If series_list and labels have different lengths.
         """
+        # Explicit type checks, as requested in the review
+        if not isinstance(series_list, list):
+            raise TypeError("series_list must be a list")
+        if not isinstance(labels, list):
+            raise TypeError("labels must be a list")
+
         if not series_list:
             raise ValueError("series_list must not be empty")
         if len(series_list) != len(labels):
@@ -66,6 +76,9 @@ class PlotMultipleSeries(BaseVisualizer):
             A tuple containing:
                 - fig: The matplotlib Figure object.
                 - ax: The matplotlib Axes with the rendered time series.
+
+        Raises:
+            None.
         """
         if ax is None:
             fig = Figure(figsize=(12, 6))
@@ -81,13 +94,15 @@ class PlotMultipleSeries(BaseVisualizer):
         for i, (series, label) in enumerate(
             zip(self.series_list, self.labels, strict=True)
         ):
+            # Use dropna() only to check if the series is completely empty;
+            # keep the original series for plotting so NaNs still create gaps.
             clean_series = series.dropna()
             if clean_series.empty:
                 continue
 
             ax.plot(
-                clean_series.index,
-                clean_series.values,
+                series.index,
+                series.values,
                 label=label,
                 color=colors[i],
                 **self.plot_kwargs,
