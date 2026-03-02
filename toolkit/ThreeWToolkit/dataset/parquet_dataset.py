@@ -225,6 +225,34 @@ class ParquetDataset(BaseStep):
         for idx in range(total_files):
             yield self[idx]
 
+    def load_instances_by_variable(
+        self,
+        variables: list[str] | None = None,
+    ) -> dict[str, list[np.ndarray]]:
+        """
+        Load all filtered instances grouped by sensor variable.
+        Provides the data structure required by the time series clustering.
+
+        Args:
+            variables (list[str] | None): Variables to load. If None, loads all configured columns.
+
+        Returns:
+            dict[str, list[np.ndarray]]: A mapping from variable name to a list of arrays.
+        """
+        target_vars = variables if variables is not None else self.config.columns
+        data_map: dict[str, list[np.ndarray]] = {var: [] for var in target_vars}
+
+        for idx in range(len(self)):
+            file_data = self.load_data(idx)
+            signal_df = file_data["signal"]
+            
+            for var in target_vars:
+                if var in signal_df.columns:
+                    values = signal_df[var].to_numpy()
+                    data_map[var].append(values)
+
+        return data_map
+
     def pre_process(self, data: Any = None) -> Any:
         """
         Clean or preprocess data if required by configuration.
