@@ -103,6 +103,8 @@ In the 3W Project, three types of versions will be managed as follows.
 * We will only use annotated tags and for each tag there will be a release in the remote repository (GitHub);
 * Content for each release will be automatically generated with functionality provided by GitHub.
 
+For detailed versioning rules, including SemVer guidelines for the 3W Toolkit, see [VERSIONING.md](VERSIONING.md).
+
 ## Questions
 
 See the discussions section. If you don't get clarification, please open discussions to ask your questions so we can answer them.
