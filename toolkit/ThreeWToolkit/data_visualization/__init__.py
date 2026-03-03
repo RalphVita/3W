@@ -7,6 +7,14 @@ from .plot_fft import PlotFFT
 from .seasonal_decomposition import SeasonalDecompositionPlot
 from .wavelet_spectrogram import WaveletSpectrogramPlot
 from .three_w_chart import ThreeWChart
+from .clustering_plots import (
+    DataQualityHeatmap,
+    DendrogramPlot,
+    ClusterSizeCurvePlot,
+    SelectionHeatmapPlot,
+    ClusteringOverlayPlot,
+    RankedDistancePlot,
+)
 
 __all__ = [
     "BaseVisualizer",
@@ -18,4 +26,10 @@ __all__ = [
     "SeasonalDecompositionPlot",
     "WaveletSpectrogramPlot",
     "ThreeWChart",
+    "DataQualityHeatmap",
+    "DendrogramPlot",
+    "ClusterSizeCurvePlot",
+    "SelectionHeatmapPlot",
+    "ClusteringOverlayPlot",
+    "RankedDistancePlot",
 ]
