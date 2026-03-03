@@ -8,8 +8,8 @@ from .enums import DistanceMetricEnum, LinkageMethodEnum
 class InstanceQualityConfig(BaseModel):
     """Configuration for time series quality filtering.
 
-    Controls detection and repair of frozen sensors
-    and NaN-corrupted instances before clustering.
+    Controls detection of frozen sensors and NaN-corrupted instances,
+    discarding those that exceed quality thresholds before clustering.
     """
 
     frozen_threshold: float = Field(
@@ -29,12 +29,6 @@ class InstanceQualityConfig(BaseModel):
         le=1.0,
         description="Maximum allowed ratio of frozen samples per instance. Instances exceeding this are discarded after repair attempt.",
     )
-    jitter_strength: float = Field(
-        default=1e-6,
-        gt=0.0,
-        description="Standard deviation of Gaussian noise injected to repair frozen segments.",
-    )
-
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
