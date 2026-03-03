@@ -72,6 +72,10 @@ docs = [
     "mkdocstrings[python]",
     "sphinx",
 ]
+clustering = [
+    "dtaidistance>=2.3",
+    "joblib>=1.0",
+]
 
 [tool.setuptools.packages.find]
 where = ["toolkit"]
