@@ -54,6 +54,67 @@ class TestDataQualityHeatmap:
         assert ax.get_title() == "Custom Title"
         plt.close(fig)
 
+    def test_instance_labels_shown(self, quality_df):
+        labels = ["Well A", "Well B", "Well C"]
+        viz = DataQualityHeatmap(quality_df, instance_labels=labels)
+        fig, ax = viz.plot()
+
+        tick_texts = [t.get_text() for t in ax.get_yticklabels()]
+        assert tick_texts == labels
+        plt.close(fig)
+
+    def test_no_instance_labels_by_default(self, quality_df):
+        viz = DataQualityHeatmap(quality_df)
+        fig, ax = viz.plot()
+
+        tick_texts = [t.get_text() for t in ax.get_yticklabels()]
+        assert tick_texts == []
+        plt.close(fig)
+
+    def test_from_data_map_returns_instance(self):
+        data_map = {
+            "P-MON-CKP": [np.array([1.0, 2.0, 3.0]), np.array([np.nan, 2.0, 3.0])],
+            "T-TPT": [np.array([1.0, 1.0, 1.0]), np.array([1.0, 2.0, 3.0])],
+        }
+        viz = DataQualityHeatmap.from_data_map(data_map)
+        assert isinstance(viz, DataQualityHeatmap)
+        assert viz.quality_df.shape == (2, 2)
+        assert list(viz.quality_df.columns) == ["P-MON-CKP", "T-TPT"]
+
+    def test_from_data_map_filters_variables(self):
+        data_map = {
+            "P-MON-CKP": [np.array([1.0, 2.0])],
+            "T-TPT": [np.array([1.0, 2.0])],
+        }
+        viz = DataQualityHeatmap.from_data_map(data_map, variables=["T-TPT"])
+        assert list(viz.quality_df.columns) == ["T-TPT"]
+
+    def test_from_data_map_plots_without_error(self):
+        data_map = {"P-MON-CKP": [np.array([1.0, np.nan, 3.0])]}
+        viz = DataQualityHeatmap.from_data_map(data_map)
+        fig, ax = viz.plot()
+        assert isinstance(fig, Figure)
+        plt.close(fig)
+
+    def test_compute_quality_score_nan_only(self):
+        series = np.array([np.nan, np.nan, 1.0, 2.0])
+        score = DataQualityHeatmap._compute_quality_score(series, frozen_threshold=0.0)
+        assert score == 0.5
+
+    def test_compute_quality_score_frozen_only(self):
+        series = np.array([1.0, 1.0, 1.0, 1.0])  # all diffs == 0
+        score = DataQualityHeatmap._compute_quality_score(series, frozen_threshold=0.0)
+        assert score == 1.0
+
+    def test_compute_quality_score_empty_series(self):
+        score = DataQualityHeatmap._compute_quality_score(np.array([]), frozen_threshold=0.0)
+        assert score == 1.0
+
+    def test_compute_quality_score_capped_at_one(self):
+        series = np.array([np.nan, np.nan, 1.0, 1.0])  # 50% NaN + 33% frozen
+        score = DataQualityHeatmap._compute_quality_score(series, frozen_threshold=0.0)
+        assert score <= 1.0
+
 
 class TestDendrogramPlot:
     """Test suite for DendrogramPlot visualizer."""
@@ -97,6 +158,33 @@ class TestDendrogramPlot:
         viz = DendrogramPlot(linkage_matrix)
         returned_fig, _ = viz.plot(ax=ax)
         assert returned_fig is fig
+        plt.close(fig)
+
+    def test_show_instance_indices(self, linkage_matrix):
+        viz = DendrogramPlot(linkage_matrix, show_instance_indices=True)
+        fig, ax = viz.plot()
+        tick_texts = [t.get_text() for t in ax.get_xticklabels()]
+        assert tick_texts == ["0", "1", "2", "3"]
+        plt.close(fig)
+
+    def test_show_original_instance_indices(self, linkage_matrix):
+        """Original pre-filter indices replace sequential labels."""
+        original_indices = [0, 3, 7, 11]
+        viz = DendrogramPlot(
+            linkage_matrix,
+            show_instance_indices=True,
+            instance_indices=original_indices,
+        )
+        fig, ax = viz.plot()
+        tick_texts = [t.get_text() for t in ax.get_xticklabels()]
+        assert tick_texts == ["0", "3", "7", "11"]
+        plt.close(fig)
+
+    def test_no_instance_indices_by_default(self, linkage_matrix):
+        viz = DendrogramPlot(linkage_matrix)
+        fig, ax = viz.plot()
+        tick_texts = [t.get_text() for t in ax.get_xticklabels()]
+        assert tick_texts == []
         plt.close(fig)
 
 

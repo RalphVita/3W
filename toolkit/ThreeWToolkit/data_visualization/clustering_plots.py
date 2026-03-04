@@ -18,6 +18,10 @@ class DataQualityHeatmap(BaseVisualizer):
     Expects a DataFrame where rows are instances and columns are sensor variables,
     with cell values being a quality score in [0, 1] (e.g., NaN ratio, frozen ratio,
     or a combined metric).
+
+    Use the ``from_data_map`` factory to build directly from the raw
+    ``{variable: [array, ...]}`` structure returned by
+    ``ParquetDataset.load_instances_by_variable()``.
     """
 
     def __init__(
@@ -25,10 +29,67 @@ class DataQualityHeatmap(BaseVisualizer):
         quality_df: pd.DataFrame,
         title: str = "Data Quality Heatmap",
         figsize: tuple[int, int] = (12, 8),
+        instance_labels: list[str] | None = None,
     ) -> None:
         self.quality_df = quality_df
         self.title = title
         self.figsize = figsize
+        self.instance_labels = instance_labels
+
+    @classmethod
+    def from_data_map(
+        cls,
+        data_map: dict[str, list[np.ndarray]],
+        variables: list[str] | None = None,
+        frozen_threshold: float = 0.0,
+        title: str = "NaN + Frozen Ratio per Instance x Variable",
+        figsize: tuple[int, int] = (12, 8),
+        instance_labels: list[str] | None = None,
+    ) -> "DataQualityHeatmap":
+        """Build a DataQualityHeatmap directly from a raw data map.
+
+        Computes a combined quality score per instance per variable:
+        ``min(nan_ratio + frozen_ratio, 1.0)``.
+
+        Args:
+            data_map: Mapping of variable name to list of time series arrays,
+                as returned by ``ParquetDataset.load_instances_by_variable()``.
+            variables: Subset of variables to include. Defaults to all keys in
+                ``data_map``.
+            frozen_threshold: Consecutive differences with absolute value at or
+                below this value are counted as frozen. Defaults to ``0.0``.
+            title: Plot title.
+            figsize: Figure size in inches.
+            instance_labels: Optional y-axis labels, one per instance row.
+
+        Returns:
+            DataQualityHeatmap: Ready-to-plot instance.
+        """
+        target_vars = variables if variables is not None else list(data_map.keys())
+        quality_data = {
+            var: [
+                cls._compute_quality_score(series, frozen_threshold)
+                for series in data_map[var]
+            ]
+            for var in target_vars
+            if var in data_map
+        }
+        return cls(
+            pd.DataFrame(quality_data),
+            title=title,
+            figsize=figsize,
+            instance_labels=instance_labels,
+        )
+
+    @staticmethod
+    def _compute_quality_score(series: np.ndarray, frozen_threshold: float) -> float:
+        """Combined NaN + frozen defect ratio for a single series, capped at 1.0."""
+        if len(series) == 0:
+            return 1.0
+        nan_ratio = float(np.isnan(series).mean())
+        diffs = np.diff(series)
+        frozen_ratio = float((np.abs(diffs) <= frozen_threshold).mean()) if len(diffs) > 0 else 0.0
+        return min(nan_ratio + frozen_ratio, 1.0)
 
     def plot(self, ax: Axes | None = None) -> tuple[Figure, Axes]:
         if ax is None:
@@ -36,15 +97,24 @@ class DataQualityHeatmap(BaseVisualizer):
         else:
             fig = cast(Figure, ax.get_figure())
 
+        df = self.quality_df.copy()
+        if self.instance_labels is not None:
+            df.index = self.instance_labels
+
+        show_labels = self.instance_labels is not None
+        label_fontsize = max(4, min(10, 200 // len(df))) if show_labels else 10
+
         sns.heatmap(
-            self.quality_df,
+            df,
             ax=ax,
             cmap="YlOrRd",
             vmin=0.0,
             vmax=1.0,
             cbar_kws={"label": "Quality Score (0 = clean, 1 = bad)"},
-            yticklabels=False,
+            yticklabels=show_labels,
         )
+        if show_labels:
+            ax.set_yticklabels(ax.get_yticklabels(), fontsize=label_fontsize)
         ax.set_title(self.title)
         ax.set_xlabel("Sensor Variable")
         ax.set_ylabel("Instance")
@@ -65,11 +135,15 @@ class DendrogramPlot(BaseVisualizer):
         threshold: float | None = None,
         title: str = "Hierarchical Clustering Dendrogram",
         figsize: tuple[int, int] = (14, 6),
+        show_instance_indices: bool = False,
+        instance_indices: list[int] | None = None,
     ) -> None:
         self.linkage_matrix = linkage_matrix
         self.threshold = threshold
         self.title = title
         self.figsize = figsize
+        self.show_instance_indices = show_instance_indices
+        self.instance_indices = instance_indices
 
     def plot(self, ax: Axes | None = None) -> tuple[Figure, Axes]:
         if ax is None:
@@ -77,14 +151,30 @@ class DendrogramPlot(BaseVisualizer):
         else:
             fig = cast(Figure, ax.get_figure())
 
+        n_instances = len(self.linkage_matrix) + 1
+
+        if self.show_instance_indices:
+            labels = (
+                [str(i) for i in self.instance_indices]
+                if self.instance_indices is not None
+                else [str(i) for i in range(n_instances)]
+            )
+        else:
+            labels = None
+
         color_threshold = self.threshold if self.threshold is not None else 0.0
         dendrogram(
             self.linkage_matrix,
             ax=ax,
             color_threshold=color_threshold,
             above_threshold_color="gray",
-            no_labels=True,
+            labels=labels,
+            no_labels=not self.show_instance_indices,
         )
+
+        if self.show_instance_indices:
+            label_fontsize = max(4, min(9, 200 // n_instances))
+            ax.set_xticklabels(ax.get_xticklabels(), fontsize=label_fontsize, rotation=90)
 
         if self.threshold is not None:
             ax.axhline(
@@ -129,18 +219,14 @@ class ClusterSizeCurvePlot(BaseVisualizer):
         thresholds = list(self.common_counts.keys())
         counts = list(self.common_counts.values())
 
-        ax.plot(
-            thresholds,
-            counts,
-            marker="o",
-            linewidth=1.5,
-            markersize=4,
-            color="steelblue",
-        )
+        markerline, stemlines, baseline = ax.stem(thresholds, counts)
+        plt.setp(markerline, color="steelblue", markersize=5)
+        plt.setp(stemlines, color="steelblue", linewidth=1.2)
+        plt.setp(baseline, color="gray", linewidth=0.8)
         ax.set_title(self.title)
         ax.set_xlabel("Normalized Distance Threshold")
         ax.set_ylabel("Cluster Size (# Instances)")
-        ax.grid(True, alpha=0.3)
+        ax.grid(True, alpha=0.3, axis="y")
         fig.tight_layout()
         return fig, ax
 
