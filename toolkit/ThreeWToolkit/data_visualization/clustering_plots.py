@@ -271,7 +271,7 @@ class SelectionHeatmapPlot(BaseVisualizer):
             if self.instance_indices is not None
             else [str(i) for i in range(n_instances)]
         )
-        x_labels = [f"{t:.1f}" for t in self.thresholds]
+        x_labels = [f"{t:.2f}" for t in self.thresholds]
         label_fontsize = max(4, min(9, 200 // n_instances))
 
         df = pd.DataFrame(matrix, index=y_labels, columns=x_labels)
@@ -298,7 +298,7 @@ class ClusteringOverlayPlot(BaseVisualizer):
     """Overlays all time series, distinguishing selected from rejected instances.
 
     Selected instances are drawn in blue; rejected instances are drawn in gray.
-    An optional centroid series (e.g., DBA centroid) is overlaid on top.
+    An optional pre-computed centroid array (e.g. DBA) is overlaid in red on top.
 
     All series are plotted on a normalized [0, 1] time axis to accommodate
     variable-length inputs.
@@ -329,30 +329,23 @@ class ClusteringOverlayPlot(BaseVisualizer):
         for i, ts in enumerate(self.series):
             x = np.linspace(0, 1, len(ts))
             if i in selected_set:
-                ax.plot(x, ts, color="steelblue", alpha=0.35, linewidth=0.8)
+                ax.plot(x, ts, color="steelblue", alpha=0.9, linewidth=1.0, zorder=2)
             else:
-                ax.plot(x, ts, color="lightgray", alpha=0.5, linewidth=0.6)
+                ax.plot(x, ts, color="lightgray", alpha=0.5, linewidth=0.6, zorder=1)
 
         if self.centroid is not None:
             x_centroid = np.linspace(0, 1, len(self.centroid))
-            ax.plot(
-                x_centroid,
-                self.centroid,
-                color="darkblue",
-                linewidth=2.0,
-                label="DBA Centroid",
-                zorder=5,
-            )
+            ax.plot(x_centroid, self.centroid, color="red", linewidth=2.5, zorder=3, label="Centroid")
 
+        from matplotlib.lines import Line2D
         legend_elements = [
-            Patch(facecolor="steelblue", alpha=0.6, label=f"Selected ({len(self.selected_indices)})"),
-            Patch(facecolor="lightgray", alpha=0.8, label=f"Rejected ({len(self.series) - len(self.selected_indices)})"),
+            Line2D([0], [0], color="steelblue", linewidth=1.5, label=f"Selected ({len(self.selected_indices)})"),
+            Line2D([0], [0], color="lightgray", linewidth=1.5, label=f"Rejected ({len(self.series) - len(self.selected_indices)})"),
         ]
         if self.centroid is not None:
-            from matplotlib.lines import Line2D
-            legend_elements.append(Line2D([0], [0], color="darkblue", linewidth=2, label="DBA Centroid"))
+            legend_elements.append(Line2D([0], [0], color="red", linewidth=2.5, label="Centroid"))
 
-        ax.legend(handles=legend_elements)
+        ax.legend(handles=legend_elements, loc="upper right")
         ax.set_title(self.title)
         ax.set_xlabel("Normalized Time")
         ax.set_ylabel("Value")

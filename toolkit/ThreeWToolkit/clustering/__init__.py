@@ -12,6 +12,7 @@ from ._hierarchical import HierarchicalClusterer
 from ._normalization import TimeSeriesScaler
 from ._quality import InstanceQualityFilter
 from ._resampling import TimeSeriesResampler
+from ._utils import compute_dba_centroid
 
 __all__ = [
     "InstanceQualityFilter",
@@ -21,4 +22,5 @@ __all__ = [
     "HierarchicalClusterer",
     "DivisiveRanker",
     "MultivariateConsensus",
+    "compute_dba_centroid",
 ]
