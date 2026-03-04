@@ -247,6 +247,23 @@ class TestSelectionHeatmapPlot:
         assert returned_fig is fig
         plt.close(fig)
 
+    def test_instance_indices_on_y_axis(self, selection_data):
+        mask, thresholds = selection_data
+        original_indices = [0, 3, 7, 11, 15]
+        viz = SelectionHeatmapPlot(mask, thresholds, instance_indices=original_indices)
+        fig, ax = viz.plot()
+        y_labels = [t.get_text() for t in ax.get_yticklabels()]
+        assert y_labels == ["0", "3", "7", "11", "15"]
+        plt.close(fig)
+
+    def test_threshold_labels_on_x_axis(self, selection_data):
+        mask, thresholds = selection_data
+        viz = SelectionHeatmapPlot(mask, thresholds)
+        fig, ax = viz.plot()
+        x_labels = [t.get_text() for t in ax.get_xticklabels()]
+        assert x_labels == ["0.3", "0.5", "0.8"]
+        plt.close(fig)
+
 
 class TestClusteringOverlayPlot:
     """Test suite for ClusteringOverlayPlot visualizer."""

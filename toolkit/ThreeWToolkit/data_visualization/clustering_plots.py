@@ -234,11 +234,12 @@ class ClusterSizeCurvePlot(BaseVisualizer):
 class SelectionHeatmapPlot(BaseVisualizer):
     """Binary heatmap showing which instances are selected at each distance threshold.
 
-    Rows correspond to thresholds (low at top, high at bottom) and columns correspond
-    to instances. A filled cell means the instance was selected at that threshold.
+    Layout: instances on the y-axis, distance thresholds (0.0 → 1.0) on the x-axis.
+    A white cell means the instance was selected at that threshold; black means rejected.
 
     Accepts ``selection_mask`` and ``thresholds_analyzed_`` directly from a fitted
-    ``MultivariateConsensus`` instance.
+    ``MultivariateConsensus`` instance. Optionally accepts ``instance_indices`` to
+    label rows with original pre-filter dataset indices instead of local ones.
     """
 
     def __init__(
@@ -247,11 +248,13 @@ class SelectionHeatmapPlot(BaseVisualizer):
         thresholds: list[float],
         title: str = "Instance Selection Heatmap",
         figsize: tuple[int, int] = (14, 6),
+        instance_indices: list[int] | None = None,
     ) -> None:
         self.selection_mask = selection_mask
         self.thresholds = thresholds
         self.title = title
         self.figsize = figsize
+        self.instance_indices = instance_indices
 
     def plot(self, ax: Axes | None = None) -> tuple[Figure, Axes]:
         if ax is None:
@@ -259,22 +262,34 @@ class SelectionHeatmapPlot(BaseVisualizer):
         else:
             fig = cast(Figure, ax.get_figure())
 
-        df = pd.DataFrame(
-            self.selection_mask,
-            index=[f"{t:.2f}" for t in self.thresholds],
+        # Transpose: rows = instances, columns = thresholds
+        matrix = self.selection_mask.T
+        n_instances = matrix.shape[0]
+
+        y_labels = (
+            [str(i) for i in self.instance_indices]
+            if self.instance_indices is not None
+            else [str(i) for i in range(n_instances)]
         )
+        x_labels = [f"{t:.1f}" for t in self.thresholds]
+        label_fontsize = max(4, min(9, 200 // n_instances))
+
+        df = pd.DataFrame(matrix, index=y_labels, columns=x_labels)
         sns.heatmap(
             df,
             ax=ax,
-            cmap="Blues",
+            cmap="gray",
             vmin=0,
             vmax=1,
             cbar=False,
-            xticklabels=False,
+            xticklabels=True,
+            yticklabels=True,
         )
+        ax.set_yticklabels(ax.get_yticklabels(), fontsize=label_fontsize)
+        ax.set_xticklabels(ax.get_xticklabels(), fontsize=8, rotation=45, ha="right")
         ax.set_title(self.title)
-        ax.set_xlabel("Instance Index")
-        ax.set_ylabel("Distance Threshold")
+        ax.set_xlabel("Distance Threshold")
+        ax.set_ylabel("Instance Index")
         fig.tight_layout()
         return fig, ax
 
