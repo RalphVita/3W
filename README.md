@@ -3,6 +3,7 @@
 [![CC BY 4.0][cc-by-shield]][cc-by]
 [![Code style][black-shield]][black]
 [![Versioning][semver-shield]][semver]
+[![Coverage Status][coveralls-shield]][coveralls]
 
 [apache]: https://opensource.org/licenses/Apache-2.0
 [apache-shield]: https://img.shields.io/badge/License-Apache_2.0-blue.svg
@@ -12,6 +13,8 @@
 [black-shield]: https://img.shields.io/badge/code%20style-black-000000.svg
 [semver]: https://semver.org
 [semver-shield]: https://img.shields.io/badge/semver-2.0.0-blue
+[coveralls]: https://coveralls.io/github/rafaelpadilla/3W?branch=dev
+[coveralls-shield]: https://coveralls.io/repos/github/rafaelpadilla/3W/badge.svg?branch=dev
 
 # Table of Content
 
