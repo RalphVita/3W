@@ -50,10 +50,30 @@ class TestInstanceQualityFilter:
         assert not np.isnan(result[0]).any()
 
     def test_interpolation_fills_middle_nan(self, quality_filter):
-        series = np.array([0.0, 1.0, np.nan, 3.0, 4.0,
-                           5.0, 6.0, 7.0, 8.0, 9.0,
-                           10.0, 11.0, 12.0, 13.0, 14.0,
-                           15.0, 16.0, 17.0, 18.0, 19.0])
+        series = np.array(
+            [
+                0.0,
+                1.0,
+                np.nan,
+                3.0,
+                4.0,
+                5.0,
+                6.0,
+                7.0,
+                8.0,
+                9.0,
+                10.0,
+                11.0,
+                12.0,
+                13.0,
+                14.0,
+                15.0,
+                16.0,
+                17.0,
+                18.0,
+                19.0,
+            ]
+        )
         result = quality_filter.fit_transform([series])
 
         assert_allclose(result[0][2], 2.0, atol=1e-10)
@@ -97,10 +117,30 @@ class TestInstanceQualityFilter:
         )
         qf = InstanceQualityFilter(config)
         # Series with small differences all <= 0.5
-        series = np.array([1.0, 1.1, 1.2, 1.3, 1.4,
-                           1.5, 1.6, 1.7, 1.8, 1.9,
-                           2.0, 2.1, 2.2, 2.3, 2.4,
-                           2.5, 2.6, 2.7, 2.8, 2.9])
+        series = np.array(
+            [
+                1.0,
+                1.1,
+                1.2,
+                1.3,
+                1.4,
+                1.5,
+                1.6,
+                1.7,
+                1.8,
+                1.9,
+                2.0,
+                2.1,
+                2.2,
+                2.3,
+                2.4,
+                2.5,
+                2.6,
+                2.7,
+                2.8,
+                2.9,
+            ]
+        )
         result = qf.fit_transform([series])
         assert len(result) == 0
 

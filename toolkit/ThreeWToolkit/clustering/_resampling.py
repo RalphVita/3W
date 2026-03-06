@@ -6,11 +6,12 @@ from ..core.base_clustering import ResamplingConfig
 
 class TimeSeriesResampler(BaseEstimator, TransformerMixin):
     """Downsamples time series data to reduce length.
-    
+
     This transformer shortens variable-length time series arrays to speed up
     downstream operations like Dynamic Time Warping (DTW), which has O(N^2)
     complexity.
     """
+
     def __init__(self, config: ResamplingConfig):
         self.config = config
 
@@ -36,16 +37,16 @@ class TimeSeriesResampler(BaseEstimator, TransformerMixin):
             return series
 
         if self.config.step_method == "slice":
-            return series[::self.config.step_size]
-        
+            return series[:: self.config.step_size]
+
         elif self.config.step_method == "mean":
             length = len(series)
             trunc_len = (length // self.config.step_size) * self.config.step_size
             if trunc_len == 0:
                 return np.array([series.mean()]) if length > 0 else np.zeros(1)
-            
+
             truncated = series[:trunc_len]
             return truncated.reshape(-1, self.config.step_size).mean(axis=1)
-            
+
         else:
             raise ValueError(f"Unknown step_method: {self.config.step_method}")

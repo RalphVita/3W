@@ -33,7 +33,11 @@ def compute_dba_centroid(
             "Install it with: pip install ThreeWToolkit[clustering]"
         ) from exc
 
-    subset = [series[i].astype(np.float64) for i in indices] if indices is not None else [s.astype(np.float64) for s in series]
+    subset = (
+        [series[i].astype(np.float64) for i in indices]
+        if indices is not None
+        else [s.astype(np.float64) for s in series]
+    )
 
     if not subset:
         raise ValueError("No series provided for centroid computation.")

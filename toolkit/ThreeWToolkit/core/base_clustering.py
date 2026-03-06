@@ -156,9 +156,7 @@ class MultivariateConsensusConfig(BaseModel):
 
     @field_validator("max_threshold")
     @classmethod
-    def max_threshold_greater_than_min(
-        cls, v: float, info: ValidationInfo
-    ) -> float:
+    def max_threshold_greater_than_min(cls, v: float, info: ValidationInfo) -> float:
         """Validate that max_threshold exceeds min_threshold.
 
         Args:
@@ -173,7 +171,5 @@ class MultivariateConsensusConfig(BaseModel):
         """
         min_t = info.data.get("min_threshold", 0.0)
         if v <= min_t:
-            raise ValueError(
-                "max_threshold must be greater than min_threshold."
-            )
+            raise ValueError("max_threshold must be greater than min_threshold.")
         return v

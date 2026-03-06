@@ -246,7 +246,7 @@ class ParquetDataset(BaseStep):
         for idx in range(len(self)):
             file_data = self.load_data(idx)
             signal_df = file_data["signal"]
-            
+
             for var in target_vars:
                 if var in signal_df.columns:
                     values = signal_df[var].to_numpy()

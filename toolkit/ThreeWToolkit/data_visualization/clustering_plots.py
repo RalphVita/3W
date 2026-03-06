@@ -88,7 +88,9 @@ class DataQualityHeatmap(BaseVisualizer):
             return 1.0
         nan_ratio = float(np.isnan(series).mean())
         diffs = np.diff(series)
-        frozen_ratio = float((np.abs(diffs) <= frozen_threshold).mean()) if len(diffs) > 0 else 0.0
+        frozen_ratio = (
+            float((np.abs(diffs) <= frozen_threshold).mean()) if len(diffs) > 0 else 0.0
+        )
         return min(nan_ratio + frozen_ratio, 1.0)
 
     def plot(self, ax: Axes | None = None) -> tuple[Figure, Axes]:
@@ -174,7 +176,9 @@ class DendrogramPlot(BaseVisualizer):
 
         if self.show_instance_indices:
             label_fontsize = max(4, min(9, 200 // n_instances))
-            ax.set_xticklabels(ax.get_xticklabels(), fontsize=label_fontsize, rotation=90)
+            ax.set_xticklabels(
+                ax.get_xticklabels(), fontsize=label_fontsize, rotation=90
+            )
 
         if self.threshold is not None:
             ax.axhline(
@@ -335,15 +339,37 @@ class ClusteringOverlayPlot(BaseVisualizer):
 
         if self.centroid is not None:
             x_centroid = np.linspace(0, 1, len(self.centroid))
-            ax.plot(x_centroid, self.centroid, color="red", linewidth=2.5, zorder=3, label="Centroid")
+            ax.plot(
+                x_centroid,
+                self.centroid,
+                color="red",
+                linewidth=2.5,
+                zorder=3,
+                label="Centroid",
+            )
 
         from matplotlib.lines import Line2D
+
         legend_elements = [
-            Line2D([0], [0], color="steelblue", linewidth=1.5, label=f"Selected ({len(self.selected_indices)})"),
-            Line2D([0], [0], color="lightgray", linewidth=1.5, label=f"Rejected ({len(self.series) - len(self.selected_indices)})"),
+            Line2D(
+                [0],
+                [0],
+                color="steelblue",
+                linewidth=1.5,
+                label=f"Selected ({len(self.selected_indices)})",
+            ),
+            Line2D(
+                [0],
+                [0],
+                color="lightgray",
+                linewidth=1.5,
+                label=f"Rejected ({len(self.series) - len(self.selected_indices)})",
+            ),
         ]
         if self.centroid is not None:
-            legend_elements.append(Line2D([0], [0], color="red", linewidth=2.5, label="Centroid"))
+            legend_elements.append(
+                Line2D([0], [0], color="red", linewidth=2.5, label="Centroid")
+            )
 
         ax.legend(handles=legend_elements, loc="upper right")
         ax.set_title(self.title)
@@ -397,7 +423,14 @@ class RankedDistancePlot(BaseVisualizer):
             fig = cast(Figure, ax.get_figure())
 
         if not self.selected_indices:
-            ax.text(0.5, 0.5, "No instances selected", ha="center", va="center", transform=ax.transAxes)
+            ax.text(
+                0.5,
+                0.5,
+                "No instances selected",
+                ha="center",
+                va="center",
+                transform=ax.transAxes,
+            )
             ax.set_title(self.title)
             return fig, ax
 
@@ -407,7 +440,11 @@ class RankedDistancePlot(BaseVisualizer):
         sorted_distances = avg_distances[sorted_indices]
 
         selected_set = set(self.selected_indices)
-        univariate_set = set(self.univariate_indices) if self.univariate_indices is not None else set()
+        univariate_set = (
+            set(self.univariate_indices)
+            if self.univariate_indices is not None
+            else set()
+        )
 
         colors, hatches = [], []
         for idx in sorted_indices:
@@ -421,7 +458,13 @@ class RankedDistancePlot(BaseVisualizer):
                 colors.append("salmon")
                 hatches.append(None)
 
-        bars = ax.bar(range(len(sorted_indices)), sorted_distances, color=colors, alpha=0.8, edgecolor="white")
+        bars = ax.bar(
+            range(len(sorted_indices)),
+            sorted_distances,
+            color=colors,
+            alpha=0.8,
+            edgecolor="white",
+        )
         for bar, hatch in zip(bars, hatches):
             if hatch:
                 bar.set_hatch(hatch)
@@ -437,11 +480,18 @@ class RankedDistancePlot(BaseVisualizer):
             ax.set_xticklabels(labels, rotation=90, fontsize=8)
 
         legend_elements = [
-            Patch(facecolor="steelblue", label=f"Consensus selected ({len(selected_set)})"),
+            Patch(
+                facecolor="steelblue", label=f"Consensus selected ({len(selected_set)})"
+            ),
             Patch(facecolor="salmon", label="Local outlier"),
         ]
         if self.univariate_indices is not None:
-            legend_elements.insert(1, Patch(facecolor="steelblue", hatch="///", label="Vetoed (valid locally)"))
+            legend_elements.insert(
+                1,
+                Patch(
+                    facecolor="steelblue", hatch="///", label="Vetoed (valid locally)"
+                ),
+            )
         ax.legend(handles=legend_elements)
         ax.set_title(self.title)
         ax.set_xlabel("Instance (sorted by distance to selected group)")

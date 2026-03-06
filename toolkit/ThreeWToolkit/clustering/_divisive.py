@@ -75,7 +75,10 @@ class DivisiveRanker(BaseEstimator):
         return outlier_index, max_distance
 
     def _record_elimination(
-        self, current_indices: list[int], local_index_to_remove: int, distance_value: float
+        self,
+        current_indices: list[int],
+        local_index_to_remove: int,
+        distance_value: float,
     ) -> None:
         original_index = current_indices[local_index_to_remove]
         self.ranking_.append(original_index)

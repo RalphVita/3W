@@ -13,14 +13,18 @@ class TestLoadInstancesByVariable:
     def mock_dataset(self):
         """Create a mock ParquetDataset that bypasses file system access."""
         fake_signals = [
-            pd.DataFrame({
-                "P-MON-CKP": [1.0, 2.0, 3.0],
-                "T-TPT": [10.0, 20.0, 30.0],
-            }),
-            pd.DataFrame({
-                "P-MON-CKP": [4.0, 5.0, 6.0],
-                "T-TPT": [40.0, 50.0, 60.0],
-            }),
+            pd.DataFrame(
+                {
+                    "P-MON-CKP": [1.0, 2.0, 3.0],
+                    "T-TPT": [10.0, 20.0, 30.0],
+                }
+            ),
+            pd.DataFrame(
+                {
+                    "P-MON-CKP": [4.0, 5.0, 6.0],
+                    "T-TPT": [40.0, 50.0, 60.0],
+                }
+            ),
         ]
 
         with patch.object(ParquetDataset, "__init__", lambda self, *a, **kw: None):
@@ -30,9 +34,7 @@ class TestLoadInstancesByVariable:
         ds.config.columns = ["P-MON-CKP", "T-TPT"]
 
         ds.files_events = [f"file_{i}" for i in range(len(fake_signals))]
-        ds.load_data = MagicMock(
-            side_effect=[{"signal": sig} for sig in fake_signals]
-        )
+        ds.load_data = MagicMock(side_effect=[{"signal": sig} for sig in fake_signals])
 
         return ds
 

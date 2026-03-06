@@ -22,12 +22,14 @@ class TestHierarchicalClusterer:
     @pytest.fixture
     def distance_matrix(self):
         """Two tight pairs: (0,1) and (2,3)."""
-        return np.array([
-            [0.0, 1.0, 5.0, 6.0],
-            [1.0, 0.0, 4.0, 5.0],
-            [5.0, 4.0, 0.0, 2.0],
-            [6.0, 5.0, 2.0, 0.0],
-        ])
+        return np.array(
+            [
+                [0.0, 1.0, 5.0, 6.0],
+                [1.0, 0.0, 4.0, 5.0],
+                [5.0, 4.0, 0.0, 2.0],
+                [6.0, 5.0, 2.0, 0.0],
+            ]
+        )
 
     @pytest.fixture
     def config(self):
@@ -92,11 +94,13 @@ class TestDivisiveRanker:
     @pytest.fixture
     def distance_matrix(self):
         """Instance 2 is the outlier (highest total distance)."""
-        return np.array([
-            [0.0, 1.0, 10.0],
-            [1.0, 0.0, 9.0],
-            [10.0, 9.0, 0.0],
-        ])
+        return np.array(
+            [
+                [0.0, 1.0, 10.0],
+                [1.0, 0.0, 9.0],
+                [10.0, 9.0, 0.0],
+            ]
+        )
 
     @pytest.fixture
     def config(self):
@@ -162,20 +166,24 @@ class TestMultivariateConsensus:
             default_threshold=0.5,
         )
         # Variable A: instances 0,1 are close; instance 2 is far
-        dm_a = np.array([
-            [0.0, 1.0, 10.0],
-            [1.0, 0.0, 9.0],
-            [10.0, 9.0, 0.0],
-        ])
+        dm_a = np.array(
+            [
+                [0.0, 1.0, 10.0],
+                [1.0, 0.0, 9.0],
+                [10.0, 9.0, 0.0],
+            ]
+        )
         model_a = HierarchicalClusterer(cfg)
         model_a.fit(dm_a)
 
         # Variable B: similar structure
-        dm_b = np.array([
-            [0.0, 2.0, 8.0],
-            [2.0, 0.0, 7.0],
-            [8.0, 7.0, 0.0],
-        ])
+        dm_b = np.array(
+            [
+                [0.0, 2.0, 8.0],
+                [2.0, 0.0, 7.0],
+                [8.0, 7.0, 0.0],
+            ]
+        )
         model_b = HierarchicalClusterer(cfg)
         model_b.fit(dm_b)
 

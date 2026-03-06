@@ -7,12 +7,13 @@ from ..core.base_clustering import InstanceQualityConfig
 
 class InstanceQualityFilter(BaseEstimator, TransformerMixin):
     """Filters out low-quality instances from a collection of time series.
-    
+
     This transformer analyzes each time series instance for unrecoverable
     flaws (high ratio of NaN gaps, long frozen sensor periods). It discards
     bad instances, repairs slightly corrupted ones (via NaN interpolation),
     and keeps track of which original instances survived the filter.
     """
+
     def __init__(self, config: InstanceQualityConfig):
         self.config = config
         self.kept_indices_: list[int] = []
@@ -30,7 +31,7 @@ class InstanceQualityFilter(BaseEstimator, TransformerMixin):
             X (list[np.ndarray]): A list of variable-length time series arrays.
 
         Returns:
-            list[np.ndarray]: A list of cleaned and repaired time series arrays. 
+            list[np.ndarray]: A list of cleaned and repaired time series arrays.
                 Instances Failing quality thresholds are dropped.
         """
         self.kept_indices_ = []

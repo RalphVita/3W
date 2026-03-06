@@ -20,7 +20,9 @@ class HierarchicalClusterer(BaseEstimator, ClusterMixin):
         self.distance_matrix_normalized_: np.ndarray | None = None
         self._is_fitted: bool = False
 
-    def fit(self, X: np.ndarray, y: np.ndarray | None = None) -> "HierarchicalClusterer":
+    def fit(
+        self, X: np.ndarray, y: np.ndarray | None = None
+    ) -> "HierarchicalClusterer":
         """Fit the hierarchical tree using the distance matrix.
 
         Args:
@@ -78,7 +80,9 @@ class HierarchicalClusterer(BaseEstimator, ClusterMixin):
         else:
             condensed_distance_array = distance_matrix
 
-        return linkage(condensed_distance_array, method=self.config.linkage_method.value)
+        return linkage(
+            condensed_distance_array, method=self.config.linkage_method.value
+        )
 
     def _validate_is_fitted(self) -> None:
         if not self._is_fitted:

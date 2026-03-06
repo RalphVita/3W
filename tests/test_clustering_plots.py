@@ -109,7 +109,9 @@ class TestDataQualityHeatmap:
         assert score == 1.0
 
     def test_compute_quality_score_empty_series(self):
-        score = DataQualityHeatmap._compute_quality_score(np.array([]), frozen_threshold=0.0)
+        score = DataQualityHeatmap._compute_quality_score(
+            np.array([]), frozen_threshold=0.0
+        )
         assert score == 1.0
 
     def test_compute_quality_score_capped_at_one(self):
@@ -123,12 +125,14 @@ class TestDendrogramPlot:
 
     @pytest.fixture
     def linkage_matrix(self):
-        dm = np.array([
-            [0.0, 1.0, 5.0, 6.0],
-            [1.0, 0.0, 4.0, 5.0],
-            [5.0, 4.0, 0.0, 2.0],
-            [6.0, 5.0, 2.0, 0.0],
-        ])
+        dm = np.array(
+            [
+                [0.0, 1.0, 5.0, 6.0],
+                [1.0, 0.0, 4.0, 5.0],
+                [5.0, 4.0, 0.0, 2.0],
+                [6.0, 5.0, 2.0, 0.0],
+            ]
+        )
         condensed = squareform(dm)
         return linkage(condensed, method="average")
 
@@ -224,11 +228,13 @@ class TestSelectionHeatmapPlot:
 
     @pytest.fixture
     def selection_data(self):
-        mask = np.array([
-            [1, 1, 0, 0, 0],
-            [1, 1, 1, 0, 0],
-            [1, 1, 1, 1, 0],
-        ])
+        mask = np.array(
+            [
+                [1, 1, 0, 0, 0],
+                [1, 1, 1, 0, 0],
+                [1, 1, 1, 1, 0],
+            ]
+        )
         thresholds = [0.3, 0.5, 0.8]
         return mask, thresholds
 
@@ -325,12 +331,14 @@ class TestRankedDistancePlot:
     @pytest.fixture
     def distance_matrix(self):
         """4×4 symmetric normalized distance matrix."""
-        return np.array([
-            [0.0, 0.2, 0.8, 0.9],
-            [0.2, 0.0, 0.7, 0.8],
-            [0.8, 0.7, 0.0, 0.3],
-            [0.9, 0.8, 0.3, 0.0],
-        ])
+        return np.array(
+            [
+                [0.0, 0.2, 0.8, 0.9],
+                [0.2, 0.0, 0.7, 0.8],
+                [0.8, 0.7, 0.0, 0.3],
+                [0.9, 0.8, 0.3, 0.0],
+            ]
+        )
 
     def test_returns_figure_and_axes(self, distance_matrix):
         viz = RankedDistancePlot(distance_matrix, selected_indices=[0, 1])
@@ -353,7 +361,9 @@ class TestRankedDistancePlot:
         plt.close(fig)
 
     def test_custom_title(self, distance_matrix):
-        viz = RankedDistancePlot(distance_matrix, selected_indices=[0, 1], title="My Plot")
+        viz = RankedDistancePlot(
+            distance_matrix, selected_indices=[0, 1], title="My Plot"
+        )
         fig, ax = viz.plot()
         assert ax.get_title() == "My Plot"
         plt.close(fig)
@@ -439,6 +449,8 @@ class TestComputeDBAcentroid:
             compute_dba_centroid(series, indices=[])
 
     def test_raises_import_error_when_dtaidistance_missing(self, series):
-        with patch.dict("sys.modules", {"dtaidistance": None, "dtaidistance.dtw_barycenter": None}):
+        with patch.dict(
+            "sys.modules", {"dtaidistance": None, "dtaidistance.dtw_barycenter": None}
+        ):
             with pytest.raises(ImportError, match="dtaidistance"):
                 compute_dba_centroid(series)

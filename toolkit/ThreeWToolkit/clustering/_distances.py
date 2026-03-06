@@ -82,9 +82,7 @@ class DistanceComputer(BaseEstimator, TransformerMixin):
 
         return squareform(condensed_matrix)
 
-    def _compute_euclidean_matrix(
-        self, series_list: list[np.ndarray]
-    ) -> np.ndarray:
+    def _compute_euclidean_matrix(self, series_list: list[np.ndarray]) -> np.ndarray:
         matrix_form = np.vstack(series_list)
 
         distance_matrix = euclidean_distances(matrix_form)
