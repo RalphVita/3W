@@ -354,26 +354,39 @@ class ClusteringOverlayPlot(BaseVisualizer):
 
 
 class RankedDistancePlot(BaseVisualizer):
-    """Bar chart of elimination distances ordered by divisive rank.
+    """Bar chart ranking instances by their average distance to the selected group.
 
-    Bars are arranged from the most extreme outlier (left, rank 0) to the tightest
-    centroid (right). Selected instances are shown in blue; rejected in salmon.
+    Instances are sorted from most distant (left, outlier) to closest (right, centroid).
+    Three categories are distinguished by color:
 
-    Accepts ``ranking_`` and ``elimination_distances_`` directly from a fitted
-    ``DivisiveRanker``, plus the ``selected_indices`` from ``MultivariateConsensus``.
+    - **Blue** — consensus selected (survives across all variables at this threshold).
+    - **Blue hatched** — vetoed: valid locally (in this variable's cluster) but rejected
+      by the multivariate consensus.
+    - **Salmon** — local outlier: rejected even within this variable's univariate cluster.
+
+    Args:
+        distance_matrix: Square normalized distance matrix ``(n, n)``.
+        selected_indices: Local indices of consensus-selected instances.
+        univariate_indices: Local indices of the univariate main cluster at the same
+            threshold. Used to identify vetoed instances. If ``None``, all non-selected
+            instances are treated as local outliers.
+        instance_labels: Original dataset indices to show on the x-axis. If ``None``,
+            local indices are used.
     """
 
     def __init__(
         self,
-        ranking: list[int],
-        elimination_distances: list[float],
+        distance_matrix: np.ndarray,
         selected_indices: list[int],
+        univariate_indices: list[int] | None = None,
+        instance_labels: list[int] | None = None,
         title: str = "Ranked Distance Plot",
         figsize: tuple[int, int] = (14, 5),
     ) -> None:
-        self.ranking = ranking
-        self.elimination_distances = elimination_distances
+        self.distance_matrix = distance_matrix
         self.selected_indices = selected_indices
+        self.univariate_indices = univariate_indices
+        self.instance_labels = instance_labels
         self.title = title
         self.figsize = figsize
 
@@ -383,27 +396,56 @@ class RankedDistancePlot(BaseVisualizer):
         else:
             fig = cast(Figure, ax.get_figure())
 
-        selected_set = set(self.selected_indices)
-        colors = [
-            "steelblue" if idx in selected_set else "salmon"
-            for idx in self.ranking
-        ]
+        if not self.selected_indices:
+            ax.text(0.5, 0.5, "No instances selected", ha="center", va="center", transform=ax.transAxes)
+            ax.set_title(self.title)
+            return fig, ax
 
-        ax.bar(
-            range(len(self.ranking)),
-            self.elimination_distances,
-            color=colors,
-            width=1.0,
-            edgecolor="none",
+        # Average distance from each instance to the selected group
+        avg_distances = np.mean(self.distance_matrix[:, self.selected_indices], axis=1)
+        sorted_indices = np.argsort(avg_distances)
+        sorted_distances = avg_distances[sorted_indices]
+
+        selected_set = set(self.selected_indices)
+        univariate_set = set(self.univariate_indices) if self.univariate_indices is not None else set()
+
+        colors, hatches = [], []
+        for idx in sorted_indices:
+            if idx in selected_set:
+                colors.append("steelblue")
+                hatches.append(None)
+            elif idx in univariate_set:
+                colors.append("steelblue")
+                hatches.append("///")
+            else:
+                colors.append("salmon")
+                hatches.append(None)
+
+        bars = ax.bar(range(len(sorted_indices)), sorted_distances, color=colors, alpha=0.8, edgecolor="white")
+        for bar, hatch in zip(bars, hatches):
+            if hatch:
+                bar.set_hatch(hatch)
+
+        # X-axis labels
+        labels = (
+            [str(self.instance_labels[i]) for i in sorted_indices]
+            if self.instance_labels is not None
+            else [str(i) for i in sorted_indices]
         )
+        if len(sorted_indices) < 50:
+            ax.set_xticks(range(len(sorted_indices)))
+            ax.set_xticklabels(labels, rotation=90, fontsize=8)
 
         legend_elements = [
-            Patch(facecolor="steelblue", label="Selected"),
-            Patch(facecolor="salmon", label="Rejected"),
+            Patch(facecolor="steelblue", label=f"Consensus selected ({len(selected_set)})"),
+            Patch(facecolor="salmon", label="Local outlier"),
         ]
+        if self.univariate_indices is not None:
+            legend_elements.insert(1, Patch(facecolor="steelblue", hatch="///", label="Vetoed (valid locally)"))
         ax.legend(handles=legend_elements)
         ax.set_title(self.title)
-        ax.set_xlabel("Rank (Outlier → Centroid)")
-        ax.set_ylabel("Elimination Distance")
+        ax.set_xlabel("Instance (sorted by distance to selected group)")
+        ax.set_ylabel("Avg Distance to Selected Group")
+        ax.grid(True, axis="y", linestyle="--", alpha=0.3)
         fig.tight_layout()
         return fig, ax
