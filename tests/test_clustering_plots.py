@@ -6,6 +6,7 @@ from matplotlib.figure import Figure
 from matplotlib.axes import Axes
 from scipy.cluster.hierarchy import linkage
 from scipy.spatial.distance import squareform
+from unittest.mock import patch
 
 from ThreeWToolkit.data_visualization.clustering_plots import (
     DataQualityHeatmap,
@@ -15,6 +16,7 @@ from ThreeWToolkit.data_visualization.clustering_plots import (
     ClusteringOverlayPlot,
     RankedDistancePlot,
 )
+from ThreeWToolkit.clustering._utils import compute_dba_centroid
 
 
 class TestDataQualityHeatmap:
@@ -261,7 +263,7 @@ class TestSelectionHeatmapPlot:
         viz = SelectionHeatmapPlot(mask, thresholds)
         fig, ax = viz.plot()
         x_labels = [t.get_text() for t in ax.get_xticklabels()]
-        assert x_labels == ["0.3", "0.5", "0.8"]
+        assert x_labels == ["0.30", "0.50", "0.80"]
         plt.close(fig)
 
 
@@ -321,39 +323,122 @@ class TestRankedDistancePlot:
     """Test suite for RankedDistancePlot visualizer."""
 
     @pytest.fixture
-    def ranked_data(self):
-        ranking = [2, 0, 1]
-        distances = [19.0, 1.0, 0.0]
-        selected = [0, 1]
-        return ranking, distances, selected
+    def distance_matrix(self):
+        """4×4 symmetric normalized distance matrix."""
+        return np.array([
+            [0.0, 0.2, 0.8, 0.9],
+            [0.2, 0.0, 0.7, 0.8],
+            [0.8, 0.7, 0.0, 0.3],
+            [0.9, 0.8, 0.3, 0.0],
+        ])
 
-    def test_returns_figure_and_axes(self, ranked_data):
-        ranking, distances, selected = ranked_data
-        viz = RankedDistancePlot(ranking, distances, selected)
+    def test_returns_figure_and_axes(self, distance_matrix):
+        viz = RankedDistancePlot(distance_matrix, selected_indices=[0, 1])
         fig, ax = viz.plot()
-
         assert isinstance(fig, Figure)
         assert isinstance(ax, Axes)
         plt.close(fig)
 
-    def test_plot_has_data(self, ranked_data):
-        ranking, distances, selected = ranked_data
-        viz = RankedDistancePlot(ranking, distances, selected)
+    def test_plot_has_data(self, distance_matrix):
+        viz = RankedDistancePlot(distance_matrix, selected_indices=[0, 1])
         fig, ax = viz.plot()
         assert ax.has_data()
         plt.close(fig)
 
-    def test_uses_provided_axes(self, ranked_data):
-        ranking, distances, selected = ranked_data
+    def test_uses_provided_axes(self, distance_matrix):
         fig, ax = plt.subplots()
-        viz = RankedDistancePlot(ranking, distances, selected)
+        viz = RankedDistancePlot(distance_matrix, selected_indices=[0, 1])
         returned_fig, _ = viz.plot(ax=ax)
         assert returned_fig is fig
         plt.close(fig)
 
-    def test_custom_title(self, ranked_data):
-        ranking, distances, selected = ranked_data
-        viz = RankedDistancePlot(ranking, distances, selected, title="My Plot")
+    def test_custom_title(self, distance_matrix):
+        viz = RankedDistancePlot(distance_matrix, selected_indices=[0, 1], title="My Plot")
         fig, ax = viz.plot()
         assert ax.get_title() == "My Plot"
         plt.close(fig)
+
+    def test_empty_selection_shows_message(self, distance_matrix):
+        viz = RankedDistancePlot(distance_matrix, selected_indices=[])
+        fig, ax = viz.plot()
+        texts = [t.get_text() for t in ax.texts]
+        assert any("No instances selected" in t for t in texts)
+        plt.close(fig)
+
+    def test_with_univariate_indices(self, distance_matrix):
+        """Vetoed instances (locally valid, globally rejected) are accepted without error."""
+        viz = RankedDistancePlot(
+            distance_matrix,
+            selected_indices=[0, 1],
+            univariate_indices=[0, 1, 2],
+        )
+        fig, ax = viz.plot()
+        assert isinstance(fig, Figure)
+        plt.close(fig)
+
+    def test_instance_labels_on_x_axis(self, distance_matrix):
+        viz = RankedDistancePlot(
+            distance_matrix,
+            selected_indices=[0, 1],
+            instance_labels=[10, 11, 12, 13],
+        )
+        fig, ax = viz.plot()
+        x_labels = [t.get_text() for t in ax.get_xticklabels()]
+        assert len(x_labels) == 4
+        assert all(label in ["10", "11", "12", "13"] for label in x_labels)
+        plt.close(fig)
+
+    def test_bars_sorted_by_avg_distance(self, distance_matrix):
+        """Instances closer to selected group appear on the right."""
+        viz = RankedDistancePlot(distance_matrix, selected_indices=[0, 1])
+        fig, ax = viz.plot()
+        bar_heights = [p.get_height() for p in ax.patches]
+        assert bar_heights == sorted(bar_heights)
+        plt.close(fig)
+
+
+class TestComputeDBAcentroid:
+    """Test suite for the compute_dba_centroid utility."""
+
+    @pytest.fixture
+    def series(self):
+        np.random.seed(0)
+        return [np.random.randn(30) for _ in range(4)]
+
+    def test_returns_ndarray(self, series):
+        with patch("dtaidistance.dtw_barycenter.dba_loop", return_value=np.zeros(30)):
+            result = compute_dba_centroid(series)
+        assert isinstance(result, np.ndarray)
+
+    def test_uses_subset_when_indices_provided(self, series):
+        captured = {}
+
+        def mock_dba(subset, **kwargs):
+            captured["n"] = len(subset)
+            return np.zeros(30)
+
+        with patch("dtaidistance.dtw_barycenter.dba_loop", side_effect=mock_dba):
+            compute_dba_centroid(series, indices=[0, 2])
+
+        assert captured["n"] == 2
+
+    def test_uses_all_series_when_no_indices(self, series):
+        captured = {}
+
+        def mock_dba(subset, **kwargs):
+            captured["n"] = len(subset)
+            return np.zeros(30)
+
+        with patch("dtaidistance.dtw_barycenter.dba_loop", side_effect=mock_dba):
+            compute_dba_centroid(series)
+
+        assert captured["n"] == len(series)
+
+    def test_raises_value_error_on_empty_subset(self, series):
+        with pytest.raises(ValueError, match="No series provided"):
+            compute_dba_centroid(series, indices=[])
+
+    def test_raises_import_error_when_dtaidistance_missing(self, series):
+        with patch.dict("sys.modules", {"dtaidistance": None, "dtaidistance.dtw_barycenter": None}):
+            with pytest.raises(ImportError, match="dtaidistance"):
+                compute_dba_centroid(series)
