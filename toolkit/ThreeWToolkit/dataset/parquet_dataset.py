@@ -240,7 +240,9 @@ class ParquetDataset(BaseStep):
         Returns:
             dict[str, list[np.ndarray]]: A mapping from variable name to a list of arrays.
         """
-        target_vars = variables if variables is not None else self.config.columns
+        target_vars = (
+            variables if variables is not None else (self.config.columns or [])
+        )
         data_map: dict[str, list[np.ndarray]] = {var: [] for var in target_vars}
 
         for idx in range(len(self)):

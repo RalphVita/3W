@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 from numpy.testing import assert_allclose
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from ThreeWToolkit.core.base_clustering import DistanceMatrixConfig
 from ThreeWToolkit.core.enums import DistanceMetricEnum
@@ -82,7 +82,7 @@ class TestDistanceComputerDTW:
 
         computer = DistanceComputer(dtw_config)
         X = [np.array([1.0, 2.0]), np.array([3.0, 4.0]), np.array([5.0, 6.0])]
-        result = computer.fit_transform(X)
+        computer.fit_transform(X)
 
         mock_dtw.distance_matrix_fast.assert_called_once()
 

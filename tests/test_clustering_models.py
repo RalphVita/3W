@@ -1,6 +1,5 @@
 import pytest
 import numpy as np
-from numpy.testing import assert_allclose
 from pydantic import ValidationError
 
 from ThreeWToolkit.core.base_clustering import (

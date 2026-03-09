@@ -1,5 +1,4 @@
 import numpy as np
-from joblib import Parallel, delayed
 from scipy.spatial.distance import squareform
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.metrics.pairwise import euclidean_distances

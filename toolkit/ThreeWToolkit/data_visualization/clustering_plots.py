@@ -446,7 +446,8 @@ class RankedDistancePlot(BaseVisualizer):
             else set()
         )
 
-        colors, hatches = [], []
+        colors: list[str] = []
+        hatches: list[str | None] = []
         for idx in sorted_indices:
             if idx in selected_set:
                 colors.append("steelblue")
