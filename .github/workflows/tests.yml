@@ -34,7 +34,7 @@ jobs:
         run: uv venv .venv
 
       - name: Install package with dev extras
-        run: uv pip install -e .[dev]
+        run: uv pip install -e .[dev,clustering]
 
       - name: Lint checking
         run: uv run ./bin/lint
