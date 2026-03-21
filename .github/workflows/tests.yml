@@ -1,5 +1,5 @@
 name: Tests and Coverage
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
   test:
@@ -34,7 +34,7 @@ jobs:
         run: uv venv .venv
 
       - name: Install package with dev extras
-        run: uv pip install -e .[dev]
+        run: uv pip install -e .[dev,clustering]
 
       - name: Lint checking
         run: uv run ./bin/lint
