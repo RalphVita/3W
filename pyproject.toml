@@ -45,6 +45,8 @@ dependencies = [
     "statsmodels>=0.14.5",
     "requests<=2.35.5",
     "black[jupyter]>=26.1.0",
+    "nbconvert",
+    "nbformat",
 ]
 
 [project.urls]
@@ -68,7 +70,6 @@ dev = [
     "types-requests>=2.32.4.20250611",
     "coverage>=7.8.1",
     "pytest-mock>=3.14.1",
-    "nbconvert",
 ]
 docs = [
     "mkdocs",
