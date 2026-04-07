@@ -2,23 +2,27 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import pandas as pd
+import numpy as np
+import logging
 
 from pathlib import Path
-from typing import Callable, Any
+from typing import Callable, Union
 from torch.utils.data import DataLoader
-from pydantic import field_validator
+from pydantic import field_validator, ValidationInfo
 
 from tqdm.auto import tqdm
 from sklearn.model_selection import StratifiedKFold, train_test_split
 
 from ..core.base_step import BaseStep
 from ..core.base_model_trainer import ModelTrainerConfig
-from ..core.enums import OptimizersEnum, CriterionEnum, TaskType
+from ..core.enums import OptimizersEnum, CriterionEnum, TaskTypeEnum
 from ..models.mlp import MLPConfig, MLP
 from ..models.sklearn_models import SklearnModelsConfig, SklearnModels
 from ..utils import ModelRecorder
 from torch.utils.data import TensorDataset
 from ..assessment.model_assess import ModelAssessment, ModelAssessmentConfig
+
+logger = logging.getLogger(__name__)
 
 
 class TrainerConfig(ModelTrainerConfig):
@@ -89,11 +93,12 @@ class TrainerConfig(ModelTrainerConfig):
 
     @field_validator("batch_size")
     @classmethod
-    def check_batch_size(cls, v):
+    def check_batch_size(cls: type["TrainerConfig"], value: int) -> int:
         """Validate that batch_size is positive.
 
         Args:
-            v (int): The batch size value to validate.
+            cls (TrainerConfig): The class reference.
+            value (int): The batch size value to validate.
 
         Returns:
             int: The validated batch size.
@@ -101,17 +106,18 @@ class TrainerConfig(ModelTrainerConfig):
         Raises:
             ValueError: If batch_size is not greater than 0.
         """
-        if v <= 0:
+        if value <= 0:
             raise ValueError("batch_size must be > 0")
-        return v
+        return value
 
     @field_validator("epochs")
     @classmethod
-    def check_epochs(cls, v):
+    def check_epochs(cls: type["TrainerConfig"], value: int) -> int:
         """Validate that epochs is positive.
 
         Args:
-            v (int): The number of epochs to validate.
+            cls (TrainerConfig): The class reference.
+            value (int): The number of epochs to validate.
 
         Returns:
             int: The validated number of epochs.
@@ -119,17 +125,18 @@ class TrainerConfig(ModelTrainerConfig):
         Raises:
             ValueError: If epochs is not greater than 0.
         """
-        if v <= 0:
+        if value <= 0:
             raise ValueError("epochs must be > 0")
-        return v
+        return value
 
     @field_validator("learning_rate")
     @classmethod
-    def check_learning_rate(cls, v):
+    def check_learning_rate(cls: type["TrainerConfig"], value: float) -> float:
         """Validate that learning_rate is positive.
 
         Args:
-            v (float): The learning rate value to validate.
+            cls (TrainerConfig): The class reference.
+            value (float): The learning rate value to validate.
 
         Returns:
             float: The validated learning rate.
@@ -137,41 +144,41 @@ class TrainerConfig(ModelTrainerConfig):
         Raises:
             ValueError: If learning_rate is not greater than 0.
         """
-        if v <= 0:
+        if value <= 0:
             raise ValueError("learning_rate must be > 0")
-        return v
+        return value
 
     @field_validator("n_splits")
     @classmethod
-    def check_n_splits(cls, v, values):
+    def check_n_splits(
+        cls: type["TrainerConfig"], value: int | None, info: ValidationInfo
+    ) -> int | None:
         """Validate n_splits when cross-validation is enabled.
 
         Args:
-            v (int): The number of splits to validate.
-            values: The validation context containing other field values.
+            cls (TrainerConfig): The class reference.
+            value (int | None): The number of splits to validate.
+            info (ValidationInfo): The validation context containing other field values.
 
         Returns:
-            int: The validated number of splits.
+            int | None: The validated number of splits.
 
         Raises:
             ValueError: If n_splits is not greater than 1 when cross_validation is True.
         """
-        cross_val = (
-            values.data.get("cross_validation")
-            if hasattr(values, "data")
-            else values.get("cross_validation")
-        )
-        if cross_val and v is not None and v <= 1:
+        cross_val = info.data.get("cross_validation")
+        if cross_val and value is not None and value <= 1:
             raise ValueError("n_splits must be > 1 for cross-validation")
-        return v
+        return value
 
     @field_validator("optimizer")
     @classmethod
-    def check_optimizer(cls, v):
+    def check_optimizer(cls: type["TrainerConfig"], value: str) -> str:
         """Validate that optimizer is from the supported list.
 
         Args:
-            v (str): The optimizer name to validate.
+            cls (TrainerConfig): The class reference.
+            value (str): The optimizer name to validate.
 
         Returns:
             str: The validated optimizer name.
@@ -180,17 +187,18 @@ class TrainerConfig(ModelTrainerConfig):
             ValueError: If optimizer is not in the supported list.
         """
         valid = {o.value for o in OptimizersEnum}
-        if v not in valid:
+        if value not in valid:
             raise ValueError(f"optimizer must be one of {valid}")
-        return v
+        return value
 
     @field_validator("criterion")
     @classmethod
-    def check_criterion(cls, v):
+    def check_criterion(cls: type["TrainerConfig"], value: str) -> str:
         """Validate that criterion is from the supported list.
 
         Args:
-            v (str): The criterion name to validate.
+            cls (TrainerConfig): The class reference.
+            value (str): The criterion name to validate.
 
         Returns:
             str: The validated criterion name.
@@ -199,17 +207,18 @@ class TrainerConfig(ModelTrainerConfig):
             ValueError: If criterion is not in the supported list.
         """
         valid = {c.value for c in CriterionEnum}
-        if v not in valid:
+        if value not in valid:
             raise ValueError(f"criterion must be one of {valid}")
-        return v
+        return value
 
     @field_validator("device")
     @classmethod
-    def check_device(cls, v):
+    def check_device(cls: type["TrainerConfig"], value: str) -> str:
         """Validate that device is either 'cpu' or 'cuda'.
 
         Args:
-            v (str): The device name to validate.
+            cls (TrainerConfig): The class reference.
+            value (str): The device name to validate.
 
         Returns:
             str: The validated device name.
@@ -218,12 +227,42 @@ class TrainerConfig(ModelTrainerConfig):
             ValueError: If device is not 'cpu' or 'cuda'.
         """
         valid = {"cpu", "cuda"}
-        if v not in valid:
+        if value not in valid:
             raise ValueError("device must be 'cpu' or 'cuda'")
-        return v
+        return value
 
 
-class ModelTrainer(BaseStep):
+# Type aliases for complex union types
+_ModelTrainerInput = Union[dict, tuple, list]
+_ModelTrainerPreProcessed = dict[str, Union[pd.DataFrame, pd.Series, dict, None]]
+_ModelTrainerRunOutput = dict[
+    str,
+    Union[pd.DataFrame, pd.Series, dict, MLP, SklearnModels, list, None],
+]
+_ModelTrainerOutput = dict[
+    str,
+    Union[
+        pd.DataFrame,
+        pd.Series,
+        dict,
+        MLP,
+        SklearnModels,
+        list,
+        bool,
+        str,
+        TrainerConfig,
+    ],
+]
+
+
+class ModelTrainer(
+    BaseStep[
+        _ModelTrainerInput,
+        _ModelTrainerPreProcessed,
+        _ModelTrainerRunOutput,
+        _ModelTrainerOutput,
+    ]
+):
     """Simplified model trainer focused on training with delegated evaluation.
 
     This class handles the training process for both PyTorch neural networks (MLP)
@@ -292,12 +331,6 @@ class ModelTrainer(BaseStep):
             config (TrainerConfig): Configuration object containing all
                 training parameters and model settings.
         """
-        """Initialize the ModelTrainer with the given configuration.
-
-        Args:
-            config (TrainerConfig): Configuration object containing all
-                training parameters and model settings.
-        """
         self.config = config
         self.lr = config.learning_rate
         self.device = config.device
@@ -308,9 +341,7 @@ class ModelTrainer(BaseStep):
             self.optimizer: torch.optim.Optimizer | None = self._get_optimizer(
                 self.config.optimizer
             )
-            self.criterion: Callable[..., Any] | None = self._get_fn_cost(
-                self.config.criterion
-            )
+            self.criterion: Callable | None = self._get_fn_cost(self.config.criterion)
         else:
             self.optimizer = None
             self.criterion = None
@@ -326,7 +357,19 @@ class ModelTrainer(BaseStep):
         self.shuffle_train = config.shuffle_train
         self.history: list = []
 
-    def pre_process(self, data: Any) -> dict[str, Any]:
+        logger.info(
+            "ModelTrainer initialized | model=%s | device=%s | lr=%s | epochs=%d | batch=%d | cv=%s",
+            type(self.model).__name__,
+            self.device,
+            self.lr,
+            self.epochs,
+            self.batch_size,
+            bool(self.cross_validation),
+        )
+
+    def pre_process(
+        self, data: dict | tuple | list
+    ) -> dict[str, pd.DataFrame | pd.Series | dict | None]:
         """Standardizes the input of the step.
 
         Validates and standardizes the input data format for training.
@@ -336,7 +379,7 @@ class ModelTrainer(BaseStep):
                   Can be a dict or any structure containing the required training data.
 
         Returns:
-            dict[str, Any]: Standardized data dictionary with required keys.
+            dict[str, pd.DataFrame | pd.Series | dict | None]: Standardized data dictionary with required keys.
 
         Raises:
             ValueError: If required training data is missing.
@@ -370,26 +413,38 @@ class ModelTrainer(BaseStep):
 
         return processed_data
 
-    def run(self, data: dict[str, Any]) -> dict[str, Any]:
+    def run(
+        self, data: dict[str, pd.DataFrame | pd.Series | dict | None]
+    ) -> dict[str, pd.DataFrame | pd.Series | dict | MLP | SklearnModels | list | None]:
         """Main logic of the step.
 
         Performs the actual model training using the provided data.
 
         Args:
-            data (dict[str, Any]): Preprocessed data containing training information.
+            data (dict[str, pd.DataFrame | pd.Series | dict | None]): Preprocessed data containing training information.
 
         Returns:
-            dict[str, Any]: Data with training results added.
+            dict[str, pd.DataFrame | pd.Series | dict | MLP | SklearnModels | list | None]: Data with training results added.
         """
         # Extract training parameters
         x_train = data["x_train"]
         y_train = data["y_train"]
         x_val = data.get("x_val")
         y_val = data.get("y_val")
-        kwargs = data.get("kwargs", {})
+        kwargs_value = data.get("kwargs", {})
+
+        # Ensure kwargs is a dict for unpacking
+        if not isinstance(kwargs_value, dict):
+            kwargs = {}
+        else:
+            kwargs = kwargs_value
+
+        logger.info("Training started")
 
         # Perform training
         self.train(x_train, y_train, x_val, y_val, **kwargs)
+
+        logger.info("Training finished | history_len=%d", len(self.history))
 
         # Add training results to data
         data["model"] = self.model
@@ -398,16 +453,32 @@ class ModelTrainer(BaseStep):
 
         return data
 
-    def post_process(self, data: dict[str, Any]) -> dict[str, Any]:
+    def post_process(
+        self,
+        data: dict[
+            str, pd.DataFrame | pd.Series | dict | MLP | SklearnModels | list | None
+        ],
+    ) -> dict[
+        str,
+        pd.DataFrame
+        | pd.Series
+        | dict
+        | MLP
+        | SklearnModels
+        | list
+        | bool
+        | str
+        | TrainerConfig,
+    ]:
         """Standardizes the output of the step.
 
         Performs any final processing and ensures output format consistency.
 
         Args:
-            data (dict[str, Any]): Data with training results.
+            data (dict[str, pd.DataFrame | pd.Series | dict | MLP | SklearnModels | list | None]): Data with training results.
 
         Returns:
-            dict[str, Any]: Final processed data ready for next pipeline step.
+            dict[str, pd.DataFrame | pd.Series | dict | MLP | SklearnModels | list | bool | str | TrainerConfig]: Final processed data ready for next pipeline step.
         """
         # Ensure all expected outputs are present
         expected_outputs = ["model", "history", "trainer"]
@@ -499,7 +570,10 @@ class ModelTrainer(BaseStep):
             raise ValueError(f"Unknown criterion: {criterion}")
 
     def _create_dataloader(
-        self, x: Any, y: Any = None, shuffle: bool = False
+        self,
+        x: pd.DataFrame | pd.Series,
+        y: pd.DataFrame | pd.Series | None = None,
+        shuffle: bool = False,
     ) -> DataLoader:
         """Create a PyTorch DataLoader from pandas DataFrame/Series.
 
@@ -507,8 +581,8 @@ class ModelTrainer(BaseStep):
         in a DataLoader for batch processing during training.
 
         Args:
-            x (Any): Input features as pandas DataFrame or compatible structure.
-            y (Any, optional): Target labels as pandas DataFrame/Series or
+            x (pd.DataFrame | pd.Series): Input features as pandas DataFrame or compatible structure.
+            y (pd.DataFrame | pd.Series | None, optional): Target labels as pandas DataFrame/Series or
                 compatible structure. If None, creates empty tensors.
             shuffle (bool, optional): Whether to shuffle data in the DataLoader.
                 Defaults to False.
@@ -560,6 +634,7 @@ class ModelTrainer(BaseStep):
             or a single-element list (regular training)
         """
         if self.cross_validation:
+            logger.info("Cross-validation enabled | n_splits=%d", self.n_splits)
             self.history = []
 
             # Create stratified k-fold splits
@@ -580,6 +655,7 @@ class ModelTrainer(BaseStep):
                 colour="#0a2c53",
             )
             for fold, (train_idx, val_idx) in pbar:
+                logger.info("Fold %d/%d started", fold + 1, self.n_splits)
                 # Updates the bar description for the current fold
                 pbar.set_description_str(f"[Pipeline] Training Fold {fold + 1}")
 
@@ -606,6 +682,7 @@ class ModelTrainer(BaseStep):
                 self.history.append(fold_history)
 
         elif x_val is not None and y_val is not None:
+            logger.info("Using provided validation set")
             # Use provided validation data
             self.history = [
                 self.call_trainer(x_train, y_train, x_val=x_val, y_val=y_val, **kwargs)
@@ -661,12 +738,12 @@ class ModelTrainer(BaseStep):
 
     def call_trainer(
         self,
-        x_train: Any,
-        y_train: Any,
-        x_val: Any = None,
-        y_val: Any = None,
+        x_train: pd.DataFrame | pd.Series,
+        y_train: pd.DataFrame | pd.Series,
+        x_val: pd.DataFrame | pd.Series | None = None,
+        y_val: pd.DataFrame | pd.Series | None = None,
         **kwargs,
-    ) -> dict[str, list[Any]] | None:
+    ) -> dict[str, list[float]] | None:
         """Call the appropriate training method based on model type.
 
         Dispatches training to either PyTorch neural network training loop
@@ -674,14 +751,14 @@ class ModelTrainer(BaseStep):
         transparently.
 
         Args:
-            x_train (Any): Training input features.
-            y_train (Any): Training target labels.
-            x_val (Any, optional): Validation input features.
-            y_val (Any, optional): Validation target labels.
+            x_train (pd.DataFrame | pd.Series): Training input features.
+            y_train (pd.DataFrame | pd.Series): Training target labels.
+            x_val (pd.DataFrame | pd.Series | None, optional): Validation input features.
+            y_val (pd.DataFrame | pd.Series | None, optional): Validation target labels.
             **kwargs: Additional arguments passed to the model's fit method.
 
         Returns:
-            dict[str, list[Any]] | None: Training history dictionary for PyTorch
+            dict[str, list[float]] | None: Training history dictionary for PyTorch
                 models (containing loss/metric trajectories), or None for
                 scikit-learn models.
         """
@@ -731,6 +808,7 @@ class ModelTrainer(BaseStep):
             The saved model can be loaded later using the load() method.
         """
         ModelRecorder.save_best_model(model=self.model, filename=filepath)
+        logger.info("Saving model to %s", filepath)
 
     def load(self, filepath: Path) -> MLP | SklearnModels:
         """Load a previously saved model from disk.
@@ -749,33 +827,30 @@ class ModelTrainer(BaseStep):
             For PyTorch models, this loads the state dict. For scikit-learn
             models, this loads the entire model state.
         """
-        state_dict = ModelRecorder.load_model(filename=filepath)
-        if isinstance(self.model, MLP):
-            self.model.load_state_dict(state_dict)
-        return self.model
+        return ModelRecorder.load_model(filename=filepath, model=self.model)
 
     def assess(
         self,
-        x_test: Any,
-        y_test: Any,
+        x_test: pd.DataFrame | pd.Series | np.ndarray,
+        y_test: pd.DataFrame | pd.Series | np.ndarray,
         assessment_config: ModelAssessmentConfig | None = None,
         **kwargs,
-    ) -> dict[str, Any]:
+    ) -> dict[str, str | np.ndarray | dict[str, float] | dict | pd.Timestamp]:
         """Evaluate the trained model using ModelAssessment.
 
         This is a convenience method that creates a ModelAssessment instance
         and evaluates the current model on the provided test data.
 
         Args:
-            x_test (Any): Test input features for evaluation.
-            y_test (Any): Test target labels for evaluation.
+            x_test (pd.DataFrame | pd.Series | np.ndarray): Test input features for evaluation.
+            y_test (pd.DataFrame | pd.Series | np.ndarray): Test target labels for evaluation.
             assessment_config (ModelAssessmentConfig | None, optional):
                 Configuration for the assessment process. If None, creates
                 a default configuration based on the task type.
             **kwargs: Additional arguments passed to ModelAssessment.evaluate().
 
         Returns:
-            dict[str, Any]: Dictionary containing evaluation results with
+            dict[str, str | np.ndarray | dict[str, float] | dict | pd.Timestamp]: Dictionary containing evaluation results with
                 metrics, predictions, and other assessment information.
 
         Example:
@@ -786,7 +861,7 @@ class ModelTrainer(BaseStep):
             >>> # Custom assessment configuration
             >>> config = ModelAssessmentConfig(
             ...     metrics=["accuracy", "f1", "precision", "recall"],
-            ...     task_type=TaskType.CLASSIFICATION
+            ...     task_type=TaskTypeEnum.CLASSIFICATION
             ... )
             >>> results = trainer.assess(X_test, y_test, assessment_config=config)
         """
@@ -799,11 +874,17 @@ class ModelTrainer(BaseStep):
                     else ["explained_variance"]
                 ),
                 task_type=(
-                    TaskType.CLASSIFICATION
+                    TaskTypeEnum.CLASSIFICATION
                     if self._is_classification_task()
-                    else TaskType.REGRESSION
+                    else TaskTypeEnum.REGRESSION
                 ),
             )
+
+        logger.debug(
+            "Assessment config | metrics=%s | task_type=%s",
+            assessment_config.metrics,
+            assessment_config.task_type,
+        )
 
         assessor = ModelAssessment(assessment_config)
         assessor._setup_metrics()
