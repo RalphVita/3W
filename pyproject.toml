@@ -44,6 +44,8 @@ dependencies = [
     "pylatex>=1.4.2",
     "statsmodels>=0.14.5",
     "requests<=2.35.5",
+    "dtaidistance>=2.3",
+    "joblib>=1.0",
 ]
 
 [project.urls]
@@ -71,10 +73,6 @@ docs = [
     "mkdocs",
     "mkdocstrings[python]",
     "sphinx",
-]
-clustering = [
-    "dtaidistance>=2.3",
-    "joblib>=1.0",
 ]
 
 [tool.setuptools.packages.find]
