@@ -47,8 +47,10 @@ class ParquetDataset(
 
         # Check if dataset version is valid
         if self.config.version not in DATASET_VALIDATION_RULES:
-            raise ValueError(f"Dataset version {self.config.version} is not valid. \
-                Supported versions are: {list(DATASET_VALIDATION_RULES.keys())}")
+            raise ValueError(
+                f"Dataset version {self.config.version} is not valid. \
+                Supported versions are: {list(DATASET_VALIDATION_RULES.keys())}"
+            )
 
         # TODO: Implement dataset splitting for train, val, test
         if self.config.split not in [None, "list"]:
@@ -274,6 +276,14 @@ class ParquetDataset(
         for idx in range(len(self)):
             file_data = self.load_data(idx)
             signal_df = file_data["signal"]
+
+            # Check if signal is a pandas DataFrame for mypy type checking
+            # It will always be a pandas DataFrame as it is created with
+            # `read_parquet(...)` as in self.load_data function
+            if not isinstance(signal_df, pd.DataFrame):
+                raise ValueError(
+                    "[ParquetDataset] 'signal' must be a pandas DataFrame."
+                )
 
             for var in target_vars:
                 if var in signal_df.columns:
