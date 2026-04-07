@@ -1,6 +1,6 @@
 [project]
 name = "ThreeWToolkit"
-version = "2.3.0"
+version = "2.4.0"
 description = "A modular and open-source AI toolkit for time-series processing, aimed at fault detection and classification in oil well operation"
 readme = { file = "toolkit/ThreeWToolkit/README.md", content-type = "text/markdown" }
 license = { text = "Apache-2.0" }
@@ -44,6 +44,8 @@ dependencies = [
     "pylatex>=1.4.2",
     "statsmodels>=0.14.5",
     "requests<=2.35.5",
+    "dtaidistance>=2.3",
+    "joblib>=1.0",
 ]
 
 [project.urls]
