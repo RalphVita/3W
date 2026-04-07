@@ -49,6 +49,19 @@ class CriterionEnum(Enum):
     MAE = "mae"
 
 
+class DistanceMetricEnum(str, Enum):
+    DTW = "dtw"
+    DTW_BARYCENTER = "dtw-barycenter"
+    EUCLIDEAN = "euclidean"
+
+
+class LinkageMethodEnum(str, Enum):
+    AVERAGE = "average"
+    COMPLETE = "complete"
+    SINGLE = "single"
+    WARD = "ward"
+
+
 class AvailableWaveletsEnum(str, Enum):
     HAAR = "haar"
     DB1 = "db1"
