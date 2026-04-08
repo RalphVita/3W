@@ -275,6 +275,14 @@ class ParquetDataset(
             file_data = self.load_data(idx)
             signal_df = file_data["signal"]
 
+            # Check if signal is a pandas DataFrame for mypy type checking
+            # It will always be a pandas DataFrame as it is created with
+            # `read_parquet(...)` as in self.load_data function
+            if not isinstance(signal_df, pd.DataFrame):
+                raise ValueError(
+                    "[ParquetDataset] 'signal' must be a pandas DataFrame."
+                )
+
             for var in target_vars:
                 if var in signal_df.columns:
                     values = signal_df[var].to_numpy()

@@ -438,7 +438,6 @@ class ModelTrainer(
             kwargs = {}
         else:
             kwargs = kwargs_value
-
         logger.info("Training started")
 
         # Perform training
