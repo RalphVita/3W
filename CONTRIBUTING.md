@@ -28,6 +28,7 @@ In this guide we present how you can propose each type of contributions that we 
     * [Levels for contributions](#levels-for-contributions)
     * [3W Dataset's structure](#3w-datasets-structure)
     * [3W Toolkit's structure](#3w-toolkits-structure)
+    * [Jupyter Notebooks](#jupyter-notebooks)
     * [Executing examples](#executing-examples)
 * [Proposing contributions](#proposing-contributions)
     * [Citation](#citation)
@@ -89,6 +90,22 @@ At level 1, the 3W Dataset consists of multiple Parquet files saved in subdirect
 
 At level 2, the 3W Toolkit is implemented in sub-modules as discribed [here](3W_TOOLKIT_STRUCTURE.md).
 
+## Jupyter Notebooks 
+
+Jupyter Notebooks play an important role in the 3W Project as a way to demonstrate usage, explore datasets, and present complete experimental pipelines. To keep the project organized, please follow this structure:
+
+- **Toolkit demos**  
+  Add notebooks demonstrating how to use the toolkit in: `3W/toolkit/demos/`
+
+- **Dataset exploration**  
+  Add notebooks for dataset usage and analysis in: `3W/dataset/demos/`
+
+- **Benchmarks**  
+  Add complete and independent benchmarking projects in: `3W/benchmarks/`
+
+- **Technical documents**  
+  The `3W/docs/` folder is reserved for academic materials such as papers, theses in `.pdf` format. Do not place notebooks here.
+
 ## Executing examples
 
 To execute examples of how to use the 3W Toolkit available in this repository, see the instructions related to [reproducibility](README.md#reproducibility).
@@ -131,16 +148,14 @@ Visualization is one of the most important steps in this type of project. Theref
 
 Would you like to share in this repository as 3W Toolkit's examples of use approaches and algorithms for already incorporated problems? The procedure for this is to submit a **pull request** on a branch called `new_approaches_and_algorithms` with [Jupyter Notebooks](https://jupyter.org/) that you've developed in the directory corresponding to the chosen problem. 
 
-Specific problems will be incorporated into this project gradually. At this point, we can work on:
-
-* [Binary classifier of Spurious Closure of DHSV](problems/01_binary_classifier_of_spurious_closure_of_dhsv/README.md).
+Specific benchmarls will be incorporated into this project gradually. All benchmarks will be included in the folder `3W/benchmarks/`
 
 ## Additional requirements
 
 Here are additional requirements for contributions to be incorporated into this project:
 
 * As the forking workflow is used, every PR needs to be generated in a fork. A tutorial about different Git Workflows is available [here](https://www.atlassian.com/git/tutorials/comparing-workflows#centralized-workflow); 
-* PRs will only be accepted if they pass the check automatically performed by the GitHub Action specified in [action-black.yml](.github/workflows/action-black.yml). If this check fails, check the generated log, use the latest version of [Black formatter](https://github.com/psf/black) to locally format the files as needed, then generate another PR.
+* PRs will only be accepted if they pass the check automatically performed by the GitHub Action specified in [action-black.yml](.github/workflows/black.yml). If this check fails, check the generated log, use the latest version of [Black formatter](https://github.com/psf/black) to locally format the files as needed, then generate another PR.
 
 # Backlog
 

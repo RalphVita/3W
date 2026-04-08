@@ -7,18 +7,20 @@ CI="${CI:-true}"
 cd "$(dirname "$0")"/..
 
 LINT="toolkit tests"
+EXCLUDE_IPYNB_REGEX='\.ipynb$'
+EXCLUDE_IPYNB_GLOB='*.ipynb'
 
 # Run mypy for type checking
-mypy ${LINT}
+mypy --exclude "${EXCLUDE_IPYNB_REGEX}" ${LINT}
 
 if [ "${CI}" = true ]; then
     # In CI, only check code formatting and linting with Ruff
-    black --check ${LINT}
-    ruff check ${LINT} 
-    uv run black --check .
+    black --check --extend-exclude "${EXCLUDE_IPYNB_REGEX}" ${LINT}
+    ruff check --extend-exclude "${EXCLUDE_IPYNB_GLOB}" ${LINT}
+    uv run black --check --extend-exclude "${EXCLUDE_IPYNB_REGEX}" .
 else
     # Locally, automatically fix formatting issues with Ruff
-    black ${LINT}
-    uv run black .
-    ruff check --fix ${LINT}
+    black --extend-exclude "${EXCLUDE_IPYNB_REGEX}" ${LINT}
+    uv run black --extend-exclude "${EXCLUDE_IPYNB_REGEX}" .
+    ruff check --fix --extend-exclude "${EXCLUDE_IPYNB_GLOB}" ${LINT}
 fi
