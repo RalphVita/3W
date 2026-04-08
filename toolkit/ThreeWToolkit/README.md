@@ -106,7 +106,7 @@ conda activate 3W
 ## 🪐 Jupyter Notebooks & Examples <a id="notebooks"></a>
 A curated set of ready-to-use jupyter notebooks that demonstrate how to use the toolkit to common fault detection tasks using the 3W dataset. These examples accelerate onboarding and reproducibility.
 
-The set of notebooks can be found in the [notebooks folder](../../docs/notebooks/)
+The set of notebooks can be found in the [notebooks folder](../demos/)
 
 
 ## 🤝 Contributing  <a id="contributing"></a>
